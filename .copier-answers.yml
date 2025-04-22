@@ -1,0 +1,9 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 08e8b92
+_src_path: gh:schwallergroup/copier-liac-minimal
+author_email: julian.barth@epfl.ch
+author_name: Julian Barth
+github_org: Julian-Barth
+package_name: adsorpsim
+project_name: AdsorpSim
+short_description: A package to model the adsorption of atmospheric CO2
