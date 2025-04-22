@@ -1,6 +1,6 @@
 """A package to model the adsorption of atmospheric CO2."""
 
-from __future__ import annotations
+#from __future__ import annotations
 
 from .adsorpsim import langmuir_adsorption_carbon
 
