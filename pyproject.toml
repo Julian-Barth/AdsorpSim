@@ -9,7 +9,9 @@ requires-python = ">=3.10"
 license = {file = "LICENSE"}
 description = "A package to model the adsorption of atmospheric CO2"
 dependencies = [
-    # "rdkit",
+    "matplotlib"
+    "streamlit"
+    "numpy"
 ]
 authors = [
     {name = "Julian Barth", email = "julian.barth@epfl.ch"}
