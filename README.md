@@ -43,6 +43,11 @@ If you need jupyter lab, install it
 (adsorpsim) $ pip install jupyterlab
 ```
 
+You should also install numpy, matplotlib, and streamlit if they are not already installed:
+```
+(adsorpsim) $ pip install numpy matplotlib streamlit
+```
+
 
 ## 🛠️ Development installation
 
@@ -67,6 +72,8 @@ To install the package, run
 ```
 (adsorpsim) $ pip install -e ".[test,doc]"
 ```
+
+
 
 ### Run tests and coverage
 
