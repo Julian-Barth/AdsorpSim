@@ -50,6 +50,9 @@ doc = [
 [tool.hatch.version]
 path = "src/adsorpsim/__init__.py"
 
+[tool.hatch.build]
+sources = ["src"]
+
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
