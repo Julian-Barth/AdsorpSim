@@ -9,8 +9,8 @@ requires-python = ">=3.10"
 license = {file = "LICENSE"}
 description = "A package to model the adsorption of atmospheric CO2"
 dependencies = [
-    "matplotlib"
-    "streamlit"
+    "matplotlib",
+    "streamlit",
     "numpy"
 ]
 authors = [
