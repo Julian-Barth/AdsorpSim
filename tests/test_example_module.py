@@ -1,4 +1,4 @@
-from adsorpsim.example_module import hello_smiles
+from adsorpsim.core import hello_smiles
 
 
 #Test the function

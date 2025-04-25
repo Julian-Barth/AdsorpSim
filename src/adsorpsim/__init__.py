@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .functions import langmuir_adsorption_carbon
+from .core import Adsorbent_Langmuir
 
 __version__ = "0.0.1"
