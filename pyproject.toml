@@ -11,7 +11,8 @@ description = "A package to model the adsorption of atmospheric CO2"
 dependencies = [
     "matplotlib",
     "streamlit",
-    "numpy"
+    "numpy",
+    "scipy"
 ]
 authors = [
     {name = "Julian Barth", email = "julian.barth@epfl.ch"}
