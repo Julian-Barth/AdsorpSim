@@ -21,7 +21,7 @@ def hello_smiles(smiles: str) -> str:
     >>> hello_smiles("C(=O)O")
     'Hello, C(=O)O!'
     """
-    return f"Helloo, {smiles}!"
+    return f"Hello, {smiles}!"
 
 
 if __name__ == "__main__":
