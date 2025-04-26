@@ -1,6 +1,5 @@
 """Tests for the AdsorpSim example."""
 
-import pytest
 from adsorpsim import Bed, Adsorbent_Langmuir
 
 def test_adsorbent_creation():
@@ -29,9 +28,7 @@ def test_bed_creation():
 def test_bed_simulation_runs():
     carbon = Adsorbent_Langmuir(name="TestCarbon", q_max=2.0, K=1.0, k_ads=0.01, density=1000)
     bed = Bed(length=1.0, diameter=0.1, flow_rate=0.01, num_segments=10, adsorbent=carbon)
-    t, C_out = bed.simulate(final_time=100, plot=False)
-    
+    t, C_out = bed.simulate(plot=False)  # <- ONLY plot parameter allowed
     assert len(t) > 0
     assert len(C_out) > 0
     assert t.shape == C_out.shape
-
