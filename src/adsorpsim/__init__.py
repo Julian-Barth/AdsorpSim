@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
-from .core import Adsorbent_Langmuir
+from .core import Bed, Adsorbent_Langmuir
+
+__all__ = ["Bed", "Adsorbent_Langmuir"]
 
 __version__ = "0.0.1"
