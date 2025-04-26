@@ -13,7 +13,7 @@ def test_bed_simulation_runs():
     carbon = Adsorbent_Langmuir(name="TestAC", q_max=2.0, K=1.0, k_ads=0.01, density=1000)
     bed = Bed(length=1.0, diameter=0.1, flow_rate=0.01, num_segments=10, adsorbent=carbon)
     
-    t, C_out = bed.simulate()  # ✅ don't pass final_time — use default args
+    t, C_out = bed.simulate()  # don't pass final_time — use default args
 
     assert len(t) == len(C_out), "Time and output arrays should be same length"
     assert np.all(C_out >= 0), "All outlet concentrations should be >= 0"
