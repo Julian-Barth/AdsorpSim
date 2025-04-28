@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-class Adsorbent_Langmuir:
+class Adsorbent_Langmuir: #we define an adsobant class, which takes the parameters needed for the Langmuir model
     def __init__(self, name, q_max, K, k_ads, density):
         self.name = name
         self.q_max = q_max  # mol/kg
@@ -11,9 +11,9 @@ class Adsorbent_Langmuir:
         self.density = density  # kg/m³
 
     def equilibrium(self, C):
-        return (self.q_max * self.K * C) / (1 + self.K * C)
+        return (self.q_max * self.K * C) / (1 + self.K * C) #at a given c in the air, there is as equivalent amount of CO2 bonding with the adsobant
 
-class Bed:
+class Bed: #now we can also initialize a bed with a PREDEFINED adsorbant
     def __init__(self, length, diameter, flow_rate, num_segments, adsorbent):
         self.length = length  # meters
         self.diameter = diameter  # meters
@@ -25,20 +25,21 @@ class Bed:
         self.velocity = self.flow_rate / self.area  # m/s
         self.dz = self.length / self.num_segments
 
-        # Inlet conditions
+        # Inlet conditions, these are specifif to what we do at the CT 
         self.R = 8.314  # J/mol·K
         self.T = 298.15  # K
         self.P = 101325  # Pa
         self.initial_molefrac = 400e-6
         self.initial_conc = self.initial_molefrac * self.P / (self.R * self.T)  # mol/m³
 
-    def _initial_conditions(self):
+    def _initial_conditions(self): #we create a matrix which takes in the concentration of CO2 at any segemnt, in the gas and solid phase. 
         C_init = np.zeros(self.num_segments)
-        C_init[0] = self.initial_conc  # Only inlet has CO₂ at t=0
+        C_init[0] = self.initial_conc  # Only inlet has CO2 at t=0
         q_init = np.zeros(self.num_segments)
         return np.concatenate([C_init, q_init])
 
-    def _ode_system(self, t, y):
+    def _ode_system(self, t, y): 
+        # Split the initial conditions back in 2 matrices 
         C = y[:self.num_segments]
         q = y[self.num_segments:]
 
@@ -60,9 +61,9 @@ class Bed:
     def simulate(self, total_time=5000, plot=False):
         t_span = (0, total_time)
         t_eval = np.linspace(*t_span, 1000)
-
+        # enbales the integration of the momentum equation 
         sol = solve_ivp(
-            self._ode_system,
+            self._ode_system, #ode system with as many equations as segments and "t"s
             t_span,
             self._initial_conditions(),
             t_eval=t_eval,
@@ -87,7 +88,8 @@ class Bed:
             plt.show()
 
         return sol.t, outlet_conc
-    
+
+#for testing purposes  
 def main():
     carbon = Adsorbent_Langmuir(
         name="Activated Carbon", 
