@@ -12,6 +12,9 @@ class Adsorbent_Langmuir: #we define an adsobant class, which takes the paramete
 
     def equilibrium(self, C):
         return (self.q_max * self.K * C) / (1 + self.K * C) #at a given c in the air, there is as equivalent amount of CO2 bonding with the adsobant
+    
+    def __repr__(self):
+        return f"{self.name} (q_max={self.q_max}, K={self.K}, k_ads={self.k_ads}, density={self.density})"
 
 class Bed: #now we can also initialize a bed with a PREDEFINED adsorbant
     def __init__(self, length, diameter, flow_rate, num_segments, adsorbent):
