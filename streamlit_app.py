@@ -4,24 +4,19 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import pandas as pd
 import os
+from src.adsorpsim.core import Bed, Adsorbent_Langmuir,get_percentage_point  # Adjust if needed
 
-from src.adsorpsim.core import Bed, Adsorbent_Langmuir,get_derivative,get_optimal_point  # Adjust if needed
-
-#currentls this is only a "manual mode". The idea would be to have a list of adsorbants we can choose from (at least for Lamgmuir istherms)
-
-# Load adsorbents data
-#@st.cache_data()
+#the data are loaded: are the data consist of different adsorbents with their physical properties
+@st.cache_data()
 def download_data():
     "Download the adsorbent database"
     current_file = Path(os.path.abspath(''))
     csv_file = current_file / "data" / "Dataset PPC.csv"
     df = pd.read_csv(csv_file, sep= ";")
     return df
-
-#dowload the data
+#the data are downloaded
 df = download_data()
-
-# Créer un dictionnaire d'instances, indexé par le nom de l’adsorbant
+#a dictionnary indexed by the adsorbents names is created, there is an entry for each adsorbent present in the dataset
 adsorbants = {}
 for _, row in df.iterrows():
     ads = Adsorbent_Langmuir(
@@ -33,21 +28,19 @@ for _, row in df.iterrows():
         density=row["density"]
     )
     adsorbants[row["name"]] = ads
-
-#create a list of all the registered adsorbents
+#a list of all the registered adsorbents is created
 list_adsorbents = list(adsorbants.keys())
 
 
 
+### General inputs:
 
 #Title
 st.title('Adsorption Breakthrough Curve Simulator')
 st.caption("Practical Proramming In Chemistry - Project")
 st.markdown("Julian Barth, Marin Deasgeans, Lucas Eichenbegrer")
 
-
-
-# Bed parameters
+#the bed parameters are chosen from the user's interface with defaults settings
 st.header('Simulation Parameters')
 col1, col2 = st.columns([1, 1])
 with col1:
@@ -57,23 +50,26 @@ with col1:
 with col2:
     num_segments = st.slider('Number of Segments', 10, 500, 100)
     total_time = st.slider('Total Simulation Time (s)', 100, 10000, 3000)
-    #définition de l'échelle de la valeure optimale
-    optimal_scale = st.slider("Scale of optimal value", 1, 10000, 2000)
+    T = st.number_input("Temperature (K)", 298.15)
+#a percentage of wanted saturated adsorbent is defined
+#this will be further used to calculate the quantity of fixed CO2 depending on the capacity's fraction
 percentage_CO2 = st.slider("Percentage of adsorbent saturated in CO₂", 1, 100, 80)
 
 
 
-# Sidebar inputs: adsorbent parameters
-#list of adsorbents  with "Manual Manipulations" at the begining in order to keep the possibility to change parameters manually
+#### Sidebar inputs: 
+
+#the user is invited to choose an adsorbent among the previously prepared list
+#the "Manual Manipulations" setting is added to propose the possibility to change parameters manually
 st.sidebar.header("List of registered adsorbant")
 choix = st.sidebar.selectbox(
     "Choose an adsorbent",
     ["Manual Modifications"]+list_adsorbents,
-    index=1  # Par défaut, choisir la première option
+    index=1
 )
-#Modifs manuelles
+#code for the manual modifications setting:
 if choix=="Manual Modifications":
-    # Adsorbent parameters
+    #the adsorbent parameters are chosen from the user's interface with defaults settings
     st.sidebar.header('Adsorbent Properties')
     q_max = st.sidebar.number_input('q_max (mol/kg)', value=1.0)
     K0 = st.sidebar.number_input('K (1/(mol/m³))', value=10000.0,step=10000.0)
@@ -97,7 +93,7 @@ if choix=="Manual Modifications":
     num_segments=num_segments,
     adsorbent=adsorbent
 )
-#adsorbents registered in the dataset avec ses propriétés physiques
+#code for the adsorbents registered in the dataset
 else:
     #adsorbent parameters
     st.sidebar.header('Adsorbent Properties')
@@ -117,68 +113,9 @@ else:
     adsorbent=adsorbent
 )
 
-
-
-#values determination /!\ à mettre en fonctions puis mettre les appels dans la partie plotting
-# Run simulation
-t, outlet_conc = bed.simulate(total_time=total_time, plot=False)
-# Calcul de la dérivée
-derivative = get_derivative(t, outlet_conc)
-#identify the most optimal point
-optimal_point = get_optimal_point(derivative,optimal_scale*1e-9)
-optimal_point_x=t[optimal_point]
-optimal_point_y=outlet_conc[optimal_point]
-#identify the point at x percentage of captured carbon
-almost_pc_point_y=(percentage_CO2/100*np.max(outlet_conc))
-# Trouver l'indice de la valeur la plus proche
-idx_proche = np.abs(outlet_conc - almost_pc_point_y).argmin()
-# Récupérer la valeur correspondante
-pc_point_y = outlet_conc[idx_proche]
-index = np.where(outlet_conc == pc_point_y)[0][0]
-pc_point_x = t[index]
-
-
-
-# Plotting!!
-fig, ax = plt.subplots(figsize=(8, 5))
-#Optimal point
-ax.plot(optimal_point_x, optimal_point_y, 'rx', markersize=10, label='Optimal point', zorder=2)
-#percentage point
-ax.plot(pc_point_x, pc_point_y, "bx", markersize=10, label="Percentage point",zorder=3)
-#breakthrough curve
-ax.plot(t, outlet_conc, label="Outlet CO₂ Concentration",zorder=1)
-#template
-ax.set_xlabel('Time (s)')
-ax.set_ylabel('Outlet CO₂ Concentration (mol/m³)')
-ax.set_title('Breakthrough Curve')
-ax.legend()
-ax.grid(True)
-# Toggle to show or not the graph
-on_off = st.toggle("Show the graph", value=True)
-if on_off:
-    st.pyplot(fig)
-
-
-
-#quantitées adsorbées en un cycle
-st.write("If the experiment is stopped where the blue cross is, the following CO₂ quantities would be absorbed")
-col11, col22 = st.columns([1, 1])
-with col11:
-    tile1=st.container(height = 120)
-    print(round(pc_point_x))
-    sous_outlet_conc=outlet_conc[:round(pc_point_x)+1]
-    adsorbed_quantity=0.016291475653314194*pc_point_x*flow_rate-np.sum(sous_outlet_conc)*flow_rate
-    tile1.metric("Quantity of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity, 2)} [mol]")
-    tile3=st.container(height=120)
-    tile3.metric("Aquisition time", f"{round(pc_point_x/60)} [min]")
-with col22:
-    tile2=st.container(height = 120)
-    tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*44.009, 2)} [g]")
-
-
-
-#Bonus sidebar: implementation of adsorbents in the dataset
+#Bonus sidebar: the user has the possibility to implement an adsorbents in the dataset directly from the app
 st.sidebar.header("Add an adsorbent to the list")
+#the constants of the adsorbent has to be listed
 with st.sidebar.form("Ajout adsorbent"):
     add_ads_name = st.text_input("name")
     add_ads_q_max = st.number_input("q_max (...)")
@@ -186,18 +123,17 @@ with st.sidebar.form("Ajout adsorbent"):
     add_ads_Ea = st.number_input("Ea (...)")
     add_ads_k_ads = st.number_input("k_ads (...)")
     add_ads_density = st.number_input("density (...)")
-
+    #the use of a form ensures the app will not rerun after each input but only after the button is pressed
     submitted = st.form_submit_button("Add the adsorbent to the list")
-
+#when the button is pressed, the programm will either notify a missing information or add the adsorbent in the dataset
 if submitted:
     if add_ads_name=="" or add_ads_q_max==0 or add_ads_K0==0 or add_ads_Ea==0 or add_ads_k_ads==0 or add_ads_density==0:
         st.sidebar.error("a parameter is missing, the adsorbent was not added to the list")
     else:
-        st.sidebar.success("The adsorbent was added to the list, please refresh the page (Ctrl+R)")
-        #add modification of csv file
+        #path to the dataset file
         current_file = Path(os.path.abspath(''))
         CSV_PATH = current_file / "data" / "Dataset PPC.csv"
-        # Créer un DataFrame avec la nouvelle ligne
+        #creation of a dataframe with the new line (new adsorbent)
         new_row = {
         "name": add_ads_name,
         "q_max": add_ads_q_max,
@@ -206,9 +142,57 @@ if submitted:
         "k_ads": add_ads_k_ads,
         "density": add_ads_density
         }
-
+        #the file is read and the new adsorbent is added
         df = pd.read_csv(CSV_PATH, sep=";")
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-
-        # Sauvegarder le fichier
+        #the file is saved 
         df.to_csv(CSV_PATH, sep=";", index=False)
+        st.sidebar.success("The adsorbent was added to the list, please refresh the page (Ctrl+R)")
+
+
+
+#### Plotting:
+
+#different values needed for plotting the graph are calculated using functions that are shown in "core.py"
+t, outlet_conc = bed.simulate(total_time=total_time, plot=False)
+pc_point_x, pc_point_y = get_percentage_point(percentage_CO2,t,outlet_conc)
+#the plot is created
+fig, ax = plt.subplots(figsize=(8, 5))
+#the point at wich the desired percentage of adsorbent is saturated in CO2 is plotted
+ax.plot(pc_point_x, pc_point_y, "rx", markersize=10, label="Percentage point",zorder=3)
+#the breakthrough curve is plotted
+ax.plot(t, outlet_conc, label="Outlet CO₂ Concentration",zorder=1)
+#the template of the graph is defined
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Outlet CO₂ Concentration (mol/m³)')
+ax.set_title('Breakthrough Curve')
+ax.legend()
+ax.grid(True)
+#a toggle to show or not the graph is created
+on_off = st.toggle("Show the graph", value=True)
+if on_off:
+    st.pyplot(fig)
+
+
+
+### Quantities of CO2 adsorbed in one cycle:
+
+st.write("If the experiment is stopped where the red cross is, the following CO₂ quantities would be absorbed")
+col11, col22 = st.columns([1, 1])
+#in the left part, the quantity of matter of captured CO2 and the acquisition time are shown
+with col11:
+    #in this tile, the quantity of matter is calculated
+    tile1=st.container(height = 120)
+    #the array representing the outlet CO2 concentration is cut to end at the red cross that represent the desired percentage of saturated adsorbent
+    #the resulting smaller array's composants are sumed and multiplied by the flowrate to yield the exact quantity of CO2 that went through our system
+    #the resulting quantity is substracted from the quantity of CO2 that would have passed through the system if it did not contain any adsorbent
+    smaller_outlet_conc=outlet_conc[:round(pc_point_x)+1]
+    adsorbed_quantity=0.016291475653314194*pc_point_x*flow_rate-np.sum(smaller_outlet_conc)*flow_rate
+    tile1.metric("Quantity of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity, 2)} [mol]")
+    #in this tile, the time of acquisition is shown. It was deducted from the x coordinate of the red cross
+    tile3=st.container(height=120)
+    tile3.metric("Acquisition time", f"{round(pc_point_x/60)} [min]")
+#in the right part, the mass of captured CO2 is shown
+with col22:
+    tile2=st.container(height = 120)
+    tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*44.009, 2)} [g]")

@@ -99,41 +99,25 @@ class Bed: #now we can also initialize a bed with a PREDEFINED adsorbant
             plt.show()
 
         return sol.t, outlet_conc
-    
-def get_derivative(t, y):
-    """
-    Calcule la dérivée numérique dy/dt pour des listes t et y.
-    Compatible avec des pas irréguliers.
-    """
-    t = np.asarray(t)
-    y = np.asarray(y)
-    dy_dt = np.zeros_like(y)
 
-    # Calcul pour les points internes (centrée)
-    dy_dt[1:-1] = (y[2:] - y[:-2]) / (t[2:] - t[:-2])
-
-    # Bords : avant et après
-    dy_dt[0] = (y[1] - y[0]) / (t[1] - t[0])
-    dy_dt[-1] = (y[-1] - y[-2]) / (t[-1] - t[-2])
-
-    return dy_dt
-
-def get_optimal_point(dy_dt, value=2e-6):
+def get_percentage_point(percentage:int, t, outlet_conc):
     """
-    dy_dt : np.array
-    value : seuil pour la dérivée
-    Retourne l'indice du premier point après le pic de dérivée
-    où dy_dt devient inférieur ou égal à value.
+    This function first identifies the outlet CO2 concentration at the desired percentage
+
+    it then finds the index of the nearest value contained in the outlet concentration array 
+    (in other words the nearest value taken by the function)
+
+    Once the index is found, we can define and return the point's coordinates
     """
-    indice_max = np.argmax(dy_dt)
-    # Sous-tableau à partir du maximum
-    sous_tableau = dy_dt[indice_max:]
-    # Trouver les indices où la condition est remplie
-    indices = np.where(sous_tableau <= value)[0]
-    if len(indices) > 0:
-        return indice_max + indices[0]
-    else:
-        return len(dy_dt)-1  # Aucun point ne correspond
+    almost_pc_point_y=(percentage/100*np.max(outlet_conc))
+
+    idx_proche = np.abs(outlet_conc - almost_pc_point_y).argmin()
+
+    pc_point_y = outlet_conc[idx_proche]
+    index = np.where(outlet_conc == pc_point_y)[0][0]
+    pc_point_x = t[index]
+    return pc_point_x, pc_point_y
+
 
 #for testing purposes  
 def main():
