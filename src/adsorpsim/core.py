@@ -2,17 +2,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-class Adsorbent_Langmuir: #we define an adsobant class, which takes the parameters needed for the Langmuir model
-    def __init__(self, name, q_max, K, k_ads, density):
+class Adsorbent_Langmuir:
+    def __init__(self, name, q_max, K0, Ea, k_ads, density, T=298.15):
         self.name = name
         self.q_max = q_max  # mol/kg
-        self.K = K          # 1/(mol/m³)
+        self.K0 = K0        # pre-exponential factor, 1/(mol/m³)
+        self.Ea = Ea        # activation energy in J/mol
         self.k_ads = k_ads  # 1/s
         self.density = density  # kg/m³
+        self.R = 8.314      # J/mol·K
+        self.T = T          # Temperature in K
+
+    @property
+    def K(self):
+        return self.K0 * np.exp(-self.Ea / (self.R * self.T))
 
     def equilibrium(self, C):
-        return (self.q_max * self.K * C) / (1 + self.K * C) #at a given c in the air, there is as equivalent amount of CO2 bonding with the adsobant
-    
+        K_T = self.K
+        return (self.q_max * K_T * C) / (1 + K_T * C)
+        
     def __repr__(self):
         return f"{self.name} (q_max={self.q_max}, K={self.K}, k_ads={self.k_ads}, density={self.density})"
 
@@ -134,9 +142,11 @@ def main():
     carbon = Adsorbent_Langmuir(
         name="Activated Carbon", 
         q_max=2.0, 
-        K=1.0, 
+        K0=20000,       # example pre-exponential factor
+        Ea=25000.0,    # example Ea in J/mol
         k_ads=0.01, 
-        density=1000
+        density=1000,
+        T=298.15          # custom temperature in Kelvin (optional)
     )
     bed = Bed(
         length=1.0, 
