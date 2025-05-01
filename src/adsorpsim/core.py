@@ -111,7 +111,10 @@ def get_percentage_point(percentage:int, t, outlet_conc):
 
     Once the index is found, we can define and return the point's coordinates
     """
-    almost_pc_point_y=(percentage/100*np.max(outlet_conc))
+    if np.max(outlet_conc)<0.1624:
+        almost_pc_point_y=(percentage/100*np.max(outlet_conc))
+    else:
+        almost_pc_point_y=(percentage/100*0.01624)
 
     idx_proche = np.abs(outlet_conc - almost_pc_point_y).argmin()
 
@@ -160,33 +163,19 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max, K0, Ea, k_ads, density):
     #the file is saved 
     df.to_csv(CSV_PATH, sep=";", index=False)
 
-def get_adsorbed_quantity(t,outlet_conc, pc_point_x, flow_rate):
+def get_adsorbed_quantity(t,outlet_conc, pc_point_x, pc_point_y, flow_rate):
     """
-    
-    """
-    #the array representing the outlet CO2 concentration is cut to end at the red cross that represent the desired percentage of saturated adsorbent
-    #the resulting smaller array's composants are sumed and multiplied by the flowrate to yield the exact quantity of CO2 that went through our system
-    #the resulting quantity is substracted from the quantity of CO2 that would have passed through the system if it did not contain any adsorbent
-    adsorbed_array=np.array([])
-    index = np.where(t == pc_point_x)[0][0]
-    for elem in outlet_conc[:round(index)+1]:
-        if elem<0.01629:
-            adsorbed=0.016301881324379795-elem
-            adsorbed_array=np.append(adsorbed_array, adsorbed)
-    return sum(adsorbed_array)*flow_rate*pc_point_x
+    This function will calculate the quantity of adsorbed CO₂ in mol 
 
-def get_adsorbed_quantity(t,outlet_conc, pc_point_x, flow_rate):
+    An array containing the concentration of adsorbed CO₂ per m³ is created with all the concentrations from the start to the red cross, (which represents the desired percentage of saturated adsorbent in CO₂)
+    
+    The component of the array are then summed and multiplied by the acquisition time and the flowrate to retrieve a quantity of matter in moles.
     """
-    à revoir
-    """
-    #the array representing the outlet CO2 concentration is cut to end at the red cross that represent the desired percentage of saturated adsorbent
-    #the resulting smaller array's composants are sumed and multiplied by the flowrate to yield the exact quantity of CO2 that went through our system
-    #the resulting quantity is substracted from the quantity of CO2 that would have passed through the system if it did not contain any adsorbent
     adsorbed_array=np.array([])
-    index = np.where(t == pc_point_x)[0][0]
+    index = np.where(outlet_conc == pc_point_y)[0][0]
     for elem in outlet_conc[:round(index)+1]:
-        if elem<0.01626:
-            adsorbed=0.016301881324379795-elem
+        if elem<0.01624:
+            adsorbed=0.01624-elem
             adsorbed_array=np.append(adsorbed_array, adsorbed)
     return sum(adsorbed_array)*flow_rate*pc_point_x
 

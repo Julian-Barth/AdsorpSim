@@ -154,7 +154,7 @@ col11, col22 = st.columns([1, 1])
 with col11:
     #in this tile, the quantity of matter of adsorbed CO2 is calculated and shown
     tile1=st.container(height = 120)
-    adsorbed_quantity=get_adsorbed_quantity(t,outlet_conc,pc_point_x,flow_rate)
+    adsorbed_quantity=get_adsorbed_quantity(t,outlet_conc,pc_point_x,pc_point_y,flow_rate)
     tile1.metric("Quantity of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity, 2)} [mol]")
     #in this tile, the time of acquisition is shown. It was deducted from the x coordinate of the red cross
     tile3=st.container(height=120)
@@ -162,5 +162,5 @@ with col11:
 #in the right part, the mass of captured CO2 is shown
 with col22:
     tile2=st.container(height = 120)
-    tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*44.009, 2)} [g]")
+    tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*0.044009, 2)} [kg]")
 
