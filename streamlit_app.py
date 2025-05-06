@@ -163,4 +163,3 @@ with col11:
 with col22:
     tile2=st.container(height = 120)
     tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*0.044009, 2)} [kg]")
-
