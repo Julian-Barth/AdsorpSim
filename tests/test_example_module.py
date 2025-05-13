@@ -1,90 +1,123 @@
+import pytest
 import numpy as np
 import pandas as pd
-import os
-from pathlib import Path
-from adsorpsim import (
-    Adsorbent_Langmuir,
-    Bed,
-    download_data,
-    get_percentage_point,
-    get_adsorbed_quantity,
-    plot_the_graph,
-    add_adsorbent_to_list
-)
+from adsorpsim import Adsorbent_Langmuir, Bed, download_data, get_percentage_point, plot_the_graph, add_adsorbent_to_list, get_adsorbed_quantity
 
-def test_adsorbent_creation():
-    a = Adsorbent_Langmuir("Test", 1.0, 0.1, 0.01, 500)
-    assert a.name == "Test"
-    assert a.q_max == 1.0
-    assert a.K == 0.1
-    assert a.k_ads == 0.01
-    assert a.density == 500
-    assert "Test" in str(a)
+# Test Adsorbent_Langmuir class
+def test_adsorbent_initialization():
+    adsorbent = Adsorbent_Langmuir(
+        name="Activated Carbon", 
+        q_max=2.0, 
+        K0=20000, 
+        Ea=25000.0, 
+        k_ads=0.01, 
+        density=1000
+    )
+    assert adsorbent.name == "Activated Carbon"
+    assert adsorbent.q_max == 2.0
+    assert adsorbent.K0 == 20000
+    assert adsorbent.Ea == 25000.0
+    assert adsorbent.k_ads == 0.01
+    assert adsorbent.density == 1000
 
+def test_adsorbent_repr():
+    adsorbent = Adsorbent_Langmuir(
+        name="Activated Carbon", 
+        q_max=2.0, 
+        K0=20000, 
+        Ea=25000.0, 
+        k_ads=0.01, 
+        density=1000
+    )
+    repr_str = repr(adsorbent)
+    assert "Activated Carbon" in repr_str
+    assert "q_max=2.0" in repr_str
+    assert "K0=20000" in repr_str
+
+# Test Bed class
 def test_bed_initialization():
-    a = Adsorbent_Langmuir("Test", 1.0, 0.1, 0.01, 500)
-    bed = Bed(1.0, 0.1, 0.01, 10, 100, a, h2o_percentage=0)
+    carbon = Adsorbent_Langmuir(name="Activated Carbon", q_max=2.0, K0=20000, Ea=25000.0, k_ads=0.01, density=1000)
+    bed = Bed(
+        length=1.0, 
+        diameter=0.1, 
+        flow_rate=0.01, 
+        num_segments=100, 
+        total_time=3000,
+        adsorbent=carbon,
+        T=298.15
+    )
     assert bed.length == 1.0
     assert bed.diameter == 0.1
-    assert bed.num_segments == 10
-    assert bed.initial_conc_CO2 > 0
-    assert bed.initial_conc_H2O == 0
+    assert bed.flow_rate == 0.01
+    assert bed.num_segments == 100
+    assert bed.total_time == 3000
+    assert bed.adsorbent == carbon
+    assert bed.T == 298.15
+    assert np.isclose(bed.area, np.pi * (0.1 / 2) ** 2)
+    assert np.isclose(bed.velocity, bed.flow_rate / bed.area)
+    assert np.isclose(bed.dz, bed.length / bed.num_segments)
 
-def test_simulation_runs_without_h2o():
-    a = Adsorbent_Langmuir("Test", 2.0, 1.0, 0.01, 500)
-    bed = Bed(1.0, 0.1, 0.01, 20, 1000, a, h2o_percentage=0)
-    t, c_out_CO2, c_out_H2O = bed.simulate(plot=False)
-    assert len(t) > 0
-    assert c_out_CO2[-1] > 0  # Should not be zero
-    assert np.allclose(c_out_H2O, 0)
+def test_bed_initial_conditions():
+    carbon = Adsorbent_Langmuir(name="Activated Carbon", q_max=2.0, K0=20000, Ea=25000.0, k_ads=0.01, density=1000)
+    bed = Bed(
+        length=1.0, 
+        diameter=0.1, 
+        flow_rate=0.01, 
+        num_segments=100, 
+        total_time=3000,
+        adsorbent=carbon,
+        T=298.15
+    )
+    initial_conditions = bed._initial_conditions()
+    assert len(initial_conditions) == 200  # 100 segments for gas and solid
+    assert initial_conditions[0] == bed.initial_conc
+    assert np.sum(initial_conditions[bed.num_segments:]) == 0
 
-def test_simulation_runs_with_h2o():
-    a = Adsorbent_Langmuir("Test", 2.0, 1.0, 0.01, 500)
-    bed = Bed(1.0, 0.1, 0.01, 20, 1000, a, h2o_percentage=50)
-    t, c_out_CO2, c_out_H2O = bed.simulate(plot=False)
-    assert len(t) > 0
-    assert np.any(c_out_H2O > 0)
+def test_bed_ode_system():
+    carbon = Adsorbent_Langmuir(name="Activated Carbon", q_max=2.0, K0=20000, Ea=25000.0, k_ads=0.01, density=1000)
+    bed = Bed(
+        length=1.0, 
+        diameter=0.1, 
+        flow_rate=0.01, 
+        num_segments=100, 
+        total_time=3000,
+        adsorbent=carbon,
+        T=298.15
+    )
+    t = 0  # test with a time step
+    y = np.zeros(200)  # Initial conditions
+    dydt = bed._ode_system(t, y)
+    assert dydt.shape == (200,)
+
+# Test Helper Functions
+def test_download_data():
+    df = download_data("test_adsorbent.csv")
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) > 0
 
 def test_get_percentage_point():
-    t = np.linspace(0, 10, 100)
-    outlet = np.linspace(0, 0.01624, 100)
-    x, y = get_percentage_point(50, t, outlet)
-    assert isinstance(x, float)
-    assert isinstance(y, float)
-
-def test_get_adsorbed_quantity():
-    t = np.linspace(0, 10, 100)
-    outlet = np.linspace(0, 0.01624, 100)
-    pc_x, pc_y = get_percentage_point(50, t, outlet)
-    q = get_adsorbed_quantity(t, outlet, pc_x, pc_y, flow_rate=0.01)
-    assert q > 0
-
-def test_add_adsorbent_to_list(tmp_path):
-    path = tmp_path / "adsorbents.csv"
-    df = pd.DataFrame(columns=["name", "q_max", "K", "k_ads", "density"])
-    df.to_csv(path, sep=";", index=False)
-
-    add_adsorbent_to_list(str(path), "TestMaterial", 1.0, 0.5, 0.01, 900)
-    df2 = pd.read_csv(path, sep=";")
-    assert "TestMaterial" in df2["name"].values
-
-def test_download_data(tmp_path):
-    path = tmp_path / "adsorbents.csv"
-    df = pd.DataFrame({
-        "name": ["Test"],
-        "q_max": [1.0],
-        "K": [0.1],
-        "k_ads": [0.01],
-        "density": [500]
-    })
-    df.to_csv(path, sep=";", index=False)
-    loaded_df = download_data(str(path))
-    assert not loaded_df.empty
-    assert "name" in loaded_df.columns
+    t = np.linspace(0, 3000, 3000)
+    outlet_conc = np.linspace(0, 0.01624, 3000)
+    pc_x, pc_y = get_percentage_point(50, t, outlet_conc)
+    assert pc_x > 0
+    assert pc_y > 0
 
 def test_plot_the_graph():
-    t = np.linspace(0, 10, 100)
-    conc = np.linspace(0, 0.01624, 100)
-    pc_x, pc_y = get_percentage_point(50, t, conc)
-    fig = plot_the_graph(t, conc, pc_x, pc_y)
+    t = np.linspace(0, 3000, 3000)
+    outlet_conc = np.linspace(0, 0.01624, 3000)
+    pc_x, pc_y = get_percentage_point(50, t, outlet_conc)
+    fig = plot_the_graph(t, outlet_conc, pc_x, pc_y)
     assert fig is not None
+
+def test_add_adsorbent_to_list():
+    # Assuming you have a test CSV file "test_adsorbent.csv"
+    add_adsorbent_to_list("test_adsorbent.csv", "New Adsorbent", 2.5, 22000, 28000, 0.02, 1100)
+    df = pd.read_csv("test_adsorbent.csv", sep=";")
+    assert "New Adsorbent" in df["name"].values
+
+def test_get_adsorbed_quantity():
+    t = np.linspace(0, 3000, 3000)
+    outlet_conc = np.linspace(0, 0.01624, 3000)
+    pc_x, pc_y = get_percentage_point(50, t, outlet_conc)
+    adsorbed_quantity = get_adsorbed_quantity(t, outlet_conc, pc_x, pc_y, 0.01)
+    assert adsorbed_quantity > 0
