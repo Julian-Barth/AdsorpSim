@@ -12,14 +12,6 @@ adsorpsim.core module
    :undoc-members:
    :show-inheritance:
 
-adsorpsim.example\_module module
---------------------------------
-
-.. automodule:: adsorpsim.example_module
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 adsorpsim.functions module
 --------------------------
 
