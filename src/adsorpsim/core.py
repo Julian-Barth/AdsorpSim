@@ -6,95 +6,124 @@ import pandas as pd
 import os
 
 class Adsorbent_Langmuir:
-    def __init__(self, name, q_max, K0, Ea, k_ads, density):
+    def __init__(self, name, q_max_CO2, K_CO2, k_ads_CO2, density, q_max_H2O=0, K_H2O=0, k_ads_H2O=0):
         self.name = name
-        self.q_max = q_max  # mol/kg
-        self.K0 = K0        # pre-exponential factor, 1/(mol/m³)
-        self.Ea = Ea        # activation energy in J/mol
-        self.k_ads = k_ads  # 1/s
-        self.density = density  # kg/m³
-        self.R = 8.314      # J/mol·K
+        self.q_max_CO2 = q_max_CO2
+        self.K_CO2 = K_CO2
+        self.k_ads_CO2 = k_ads_CO2
+        self.density = density
+        self.q_max_H2O = q_max_H2O
+        self.K_H2O = K_H2O
+        self.k_ads_H2O = k_ads_H2O
 
     def __repr__(self):
-        return f"{self.name} (q_max={self.q_max}, K0={self.K0}, Ea={self.Ea}, k_ads={self.k_ads}, density={self.density})"
-    
-class Bed: #now we can also initialize a bed with a PREDEFINED adsorbant
-    def __init__(self, length, diameter, flow_rate, num_segments, total_time, adsorbent, T):
-        self.length = length  # meters
-        self.diameter = diameter  # meters
-        self.flow_rate = flow_rate  # m³/s
-        self.num_segments = num_segments  # discretization segments
+        return (f"{self.name} (q_max_CO2={self.q_max_CO2}, K_CO2={self.K_CO2}, k_ads_CO2={self.k_ads_CO2}, "
+                f"density={self.density}, q_max_H2O={self.q_max_H2O}, K_H2O={self.K_H2O}, k_ads_H2O={self.k_ads_H2O})")
+
+class Bed:
+    def __init__(self, length, diameter, flow_rate, num_segments, total_time, adsorbent, humidity_percentage=0):
+        self.length = length
+        self.diameter = diameter
+        self.flow_rate = flow_rate
+        self.num_segments = num_segments
         self.total_time = total_time
         self.adsorbent = adsorbent
-        self.T = T #Kelvin
+        self.humidity_percentage = humidity_percentage  # % humidity (0–100)
 
         self.area = np.pi * (self.diameter / 2) ** 2
-        self.velocity = self.flow_rate / self.area  # m/s
+        self.velocity = self.flow_rate / self.area
         self.dz = self.length / self.num_segments
 
-        # Inlet conditions, these are specifif to what we do at the CT 
-        self.R = 8.314  # J/mol·K
-        self.P = 101325  # Pa
-        self.initial_molefrac = 400e-6
-        self.initial_conc = self.initial_molefrac * self.P / (self.R * self.T)  # mol/m³
+        self.initial_conc_CO2 = 0.01624  # mol/m³
 
-    def _initial_conditions(self): #we create a matrix which takes in the concentration of CO2 at any segemnt, in the gas and solid phase. 
-        C_init = np.zeros(self.num_segments)
-        C_init[0] = self.initial_conc  # Only inlet has CO2 at t=0
-        q_init = np.zeros(self.num_segments)
-        return np.concatenate([C_init, q_init])
+        # Convert relative humidity (%) to water vapor concentration (mol/m³)
+        max_H2O_conc = 0.0173  # mol/m³ at 25°C
+        self.initial_conc_H2O = (humidity_percentage / 100) * max_H2O_conc
 
-    def _ode_system(self, t, y): 
-        # Split the initial conditions back in 2 matrices 
-        C = y[:self.num_segments]
-        q = y[self.num_segments:]
+    def _initial_conditions(self):
+        C_CO2 = np.zeros(self.num_segments)
+        C_CO2[0] = self.initial_conc_CO2
+        q_CO2 = np.zeros(self.num_segments)
 
-        dCdt = np.zeros_like(C)
-        dqdt = np.zeros_like(q)
+        if self.initial_conc_H2O > 0:
+            C_H2O = np.zeros(self.num_segments)
+            C_H2O[0] = self.initial_conc_H2O
+            q_H2O = np.zeros(self.num_segments)
+            return np.concatenate([C_CO2, C_H2O, q_CO2, q_H2O])
+        else:
+            return np.concatenate([C_CO2, q_CO2])
 
-        # Inlet boundary condition
-        C_in = self.initial_conc
-        C_upstream = np.concatenate([[C_in], C[:-1]])
+    def _ode_system(self, t, y):
+        if self.initial_conc_H2O > 0:
+            C_CO2 = y[0:self.num_segments]
+            C_H2O = y[self.num_segments:2*self.num_segments]
+            q_CO2 = y[2*self.num_segments:3*self.num_segments]
+            q_H2O = y[3*self.num_segments:]
+        else:
+            C_CO2 = y[0:self.num_segments]
+            q_CO2 = y[self.num_segments:]
 
-        # Advection and adsorption
-        dCdz = (C - C_upstream) / self.dz
-        K=self.adsorbent.K0 * np.exp(-self.adsorbent.Ea / (self.adsorbent.R * self.T))
-        q_eq_vals=(self.adsorbent.q_max * K * C) / (1 + K * C)
-        dqdt = self.adsorbent.k_ads * (q_eq_vals - q)
-        dCdt = -self.velocity * dCdz - self.adsorbent.density * dqdt
+        dC_CO2_dt = np.zeros_like(C_CO2)
+        C_in_CO2 = self.initial_conc_CO2
+        C_up_CO2 = np.concatenate([[C_in_CO2], C_CO2[:-1]])
+        dC_CO2_dz = (C_CO2 - C_up_CO2) / self.dz
 
-        return np.concatenate([dCdt, dqdt])
+        K_CO2 = self.adsorbent.K_CO2
+        q_eq_CO2 = (self.adsorbent.q_max_CO2 * K_CO2 * C_CO2) / (1 + K_CO2 * C_CO2)
+        dq_CO2_dt = self.adsorbent.k_ads_CO2 * (q_eq_CO2 - q_CO2)
+        dC_CO2_dt = -self.velocity * dC_CO2_dz - self.adsorbent.density * dq_CO2_dt
+
+        if self.initial_conc_H2O > 0:
+            dC_H2O_dt = np.zeros_like(C_H2O)
+            C_in_H2O = self.initial_conc_H2O
+            C_up_H2O = np.concatenate([[C_in_H2O], C_H2O[:-1]])
+            dC_H2O_dz = (C_H2O - C_up_H2O) / self.dz
+
+            K_H2O = self.adsorbent.K_H2O
+            q_eq_H2O = (self.adsorbent.q_max_H2O * K_H2O * C_H2O) / (1 + K_H2O * C_H2O)
+            dq_H2O_dt = self.adsorbent.k_ads_H2O * (q_eq_H2O - q_H2O)
+            dC_H2O_dt = -self.velocity * dC_H2O_dz - self.adsorbent.density * dq_H2O_dt
+
+            return np.concatenate([dC_CO2_dt, dC_H2O_dt, dq_CO2_dt, dq_H2O_dt])
+        else:
+            return np.concatenate([dC_CO2_dt, dq_CO2_dt])
 
     def simulate(self, plot=False):
         t_span = (0, self.total_time)
         t_eval = np.linspace(*t_span, self.total_time)
-        # enbales the integration of the momentum equation 
+
         sol = solve_ivp(
-            self._ode_system, #ode system with as many equations as segments and "t"s
+            self._ode_system,
             t_span,
             self._initial_conditions(),
             t_eval=t_eval,
             method='BDF',
-            vectorized=False,
             rtol=1e-6,
             atol=1e-9
         )
 
-        C_sol = sol.y[:self.num_segments, :]
-        outlet_conc = C_sol[-1, :]
+        C_CO2_sol = sol.y[0:self.num_segments, :]
+        outlet_CO2 = C_CO2_sol[-1, :]
+
+        outlet_H2O = None
+        if self.initial_conc_H2O > 0:
+            C_H2O_sol = sol.y[self.num_segments:2*self.num_segments, :]
+            outlet_H2O = C_H2O_sol[-1, :]
 
         if plot:
-            plt.figure(figsize=(8,5))
-            plt.plot(sol.t, outlet_conc, label="Outlet CO₂ Concentration")
+            plt.figure(figsize=(8, 5))
+            plt.plot(sol.t, outlet_CO2, label="Outlet CO₂")
+            if outlet_H2O is not None:
+                plt.plot(sol.t, outlet_H2O, label="Outlet H₂O", linestyle='--')
             plt.xlabel('Time (s)')
-            plt.ylabel('Outlet CO₂ Concentration (mol/m³)')
+            plt.ylabel('Outlet Concentration (mol/m³)')
             plt.title('Breakthrough Curve')
-            plt.legend()
             plt.grid(True)
+            plt.legend()
             plt.tight_layout()
             plt.show()
 
-        return sol.t, outlet_conc
+        return sol.t, outlet_CO2, outlet_H2O
 
 #the data were not cached as it does not allow the apparition of new asorbent imputted from the app 
 def download_data(csv_file):
@@ -182,27 +211,29 @@ def get_adsorbed_quantity(t,outlet_conc, pc_point_x, pc_point_y, flow_rate):
 
 
 
-#for testing purposes  
 def main():
     carbon = Adsorbent_Langmuir(
-        name="Activated Carbon", 
-        q_max=2.0, 
-        K0=20000,       # example pre-exponential factor
-        Ea=25000.0,    # example Ea in J/mol
-        k_ads=0.01, 
+        name="Activated Carbon",
+        q_max_CO2=2.0,
+        K_CO2=0.5,
+        k_ads_CO2=0.01,
         density=1000,
-       # T=298.15          # custom temperature in Kelvin (optional)
+        q_max_H2O=1.0,
+        K_H2O=1,
+        k_ads_H2O=0.005
     )
+
     bed = Bed(
-        length=1.0, 
-        diameter=0.1, 
-        flow_rate=0.01, 
-        num_segments=100, 
+        length=1.0,
+        diameter=0.10,
+        flow_rate=0.01,
+        num_segments=100,
         total_time=3000,
         adsorbent=carbon,
-        T=298.15
+        humidity_percentage=50  # Change this to >0 to include humidity
     )
-    bed.simulate(plot=False)
+
+    t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
 
 if __name__ == "__main__":
     main()
