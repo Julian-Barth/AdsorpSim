@@ -12,7 +12,8 @@ dependencies = [
     "matplotlib",
     "streamlit",
     "numpy",
-    "scipy"
+    "scipy",
+    "pandas"
 ]
 authors = [
     {name = "Julian Barth", email = "julian.barth@epfl.ch"}
