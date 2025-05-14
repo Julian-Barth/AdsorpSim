@@ -13,9 +13,7 @@ dependencies = [
     "streamlit",
     "numpy",
     "scipy",
-    "pathlib",
-    "pandas",
-    "os"
+    "pandas"
 ]
 authors = [
     {name = "Julian Barth", email = "julian.barth@epfl.ch"}
