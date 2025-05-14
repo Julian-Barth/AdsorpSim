@@ -15,7 +15,6 @@ dependencies = [
     "scipy",
     "pathlib"
     "pandas",
-    "os"
 ]
 authors = [
     {name = "Julian Barth", email = "julian.barth@epfl.ch"}
