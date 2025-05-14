@@ -112,7 +112,7 @@ To install the package, run
 
 
 
-### Run tests and coverage
+### ✅ Run tests and coverage
 
 ```
 (conda_env) $ pip install tox
