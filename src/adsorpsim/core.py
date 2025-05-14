@@ -214,23 +214,23 @@ def get_adsorbed_quantity(t,outlet_conc, pc_point_x, pc_point_y, flow_rate):
 def main():
     carbon = Adsorbent_Langmuir(
         name="Activated Carbon",
-        q_max_CO2=2.0,
-        K_CO2=0.5,
-        k_ads_CO2=0.01,
-        density=1000,
-        q_max_H2O=1.0,
-        K_H2O=1,
+        q_max_CO2=4.5,
+        K_CO2=0.2,
+        k_ads_CO2=15,
+        density=500,
+        q_max_H2O=0.15,
+        K_H2O=0.05,
         k_ads_H2O=0.005
     )
 
     bed = Bed(
-        length=1.0,
-        diameter=0.10,
+        length=1,
+        diameter=0.15,
         flow_rate=0.01,
         num_segments=100,
         total_time=3000,
         adsorbent=carbon,
-        humidity_percentage=50  # Change this to >0 to include humidity
+        humidity_percentage=50 # Change this to >0 to include humidity
     )
 
     t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
