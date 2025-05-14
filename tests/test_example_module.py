@@ -1,57 +1,60 @@
-import numpy as np
 import pytest
+import numpy as np
+
 from adsorpsim import (
-    Adsorbent_Langmuir,
-    Bed,
-    get_percentage_point,
-    get_adsorbed_quantity,
+    Adsorbent_Langmuir, Bed, get_percentage_point,
+    get_adsorbed_quantity
 )
 
 @pytest.fixture
-def test_adsorbent():
+def adsorbent():
     return Adsorbent_Langmuir(
-        name="Test Carbon",
-        q_max=2.0,
-        K0=20000,
-        Ea=25000,
-        k_ads=0.01,
-        density=1000,
+        name="TestAdsorbent",
+        q_max_CO2=2.0,
+        K_CO2=0.5,
+        k_ads_CO2=0.01,
+        density=1000
     )
 
 @pytest.fixture
-def test_bed(test_adsorbent):
+def bed(adsorbent):
     return Bed(
         length=1.0,
         diameter=0.1,
         flow_rate=0.01,
-        num_segments=50,
-        total_time=1000,
-        adsorbent=test_adsorbent,
-        T=298.15
+        num_segments=10,
+        total_time=50,
+        adsorbent=adsorbent,
+        humidity_percentage=0
     )
 
-def test_adsorbent_repr(test_adsorbent):
-    repr_str = repr(test_adsorbent)
-    assert "Test Carbon" in repr_str
-    assert "q_max=2.0" in repr_str
+def test_adsorbent_repr(adsorbent):
+    r = repr(adsorbent)
+    assert "TestAdsorbent" in r
+    assert "q_max_CO2=2.0" in r
 
-def test_bed_simulation_shape(test_bed):
-    t, outlet_conc = test_bed.simulate(plot=False)
-    assert len(t) == len(outlet_conc)
+def test_initial_conditions_shape(bed):
+    y0 = bed._initial_conditions()
+    assert y0.shape[0] == 20  # 10 segments → 10 C_CO2 + 10 q_CO2
+
+def test_simulate_returns_data(bed):
+    t, outlet_CO2, outlet_H2O = bed.simulate(plot=False)
     assert isinstance(t, np.ndarray)
-    assert isinstance(outlet_conc, np.ndarray)
-    assert len(outlet_conc) > 0
+    assert isinstance(outlet_CO2, np.ndarray)
+    assert outlet_H2O is None
+    assert len(t) == bed.total_time
 
-def test_get_percentage_point_output(test_bed):
-    t, outlet_conc = test_bed.simulate(plot=False)
-    pc_x, pc_y = get_percentage_point(50, t, outlet_conc)
-    assert isinstance(pc_x, (int, float))
-    assert isinstance(pc_y, (int, float))
-    assert 0 <= pc_y <= max(outlet_conc)
+def test_percentage_point_accuracy():
+    t = np.linspace(0, 100, 100)
+    outlet_conc = np.linspace(0, 0.01624, 100)
+    x, y = get_percentage_point(50, t, outlet_conc)
+    assert np.isclose(y, 0.00812, atol=1e-4)
+    assert 0 <= x <= 100
 
-def test_get_adsorbed_quantity(test_bed):
-    t, outlet_conc = test_bed.simulate(plot=False)
-    pc_x, pc_y = get_percentage_point(50, t, outlet_conc)
-    adsorbed = get_adsorbed_quantity(t, outlet_conc, pc_x, pc_y, test_bed.flow_rate)
-    assert isinstance(adsorbed, float)
-    assert adsorbed >= 0
+def test_adsorbed_quantity_computation():
+    t = np.linspace(0, 100, 100)
+    outlet_conc = 0.01624 - 0.0001 * np.arange(100)  # decreasing
+    pc_x, pc_y = 50, 0.01124  # example saturation point
+    flow_rate = 0.01
+    ads = get_adsorbed_quantity(t, outlet_conc, pc_x, pc_y, flow_rate)
+    assert ads > 0
