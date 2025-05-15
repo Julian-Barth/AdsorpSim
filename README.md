@@ -31,7 +31,7 @@ One of the key features of AdsorpSim is the ability to customize several key par
 You can specify the characteristics of the adsorption bed, including bed dimensions
 
 **2. Airflow**
-The airflow through the adsorption bed is a critical parameter. You can define: Airflow rate (m³/s)
+The airflow through the adsorption bed is a critical parameter. Adsorpsim let's you specifiy the airflow rate (m³/s)
 
 **3. Adsorbent Type**
 Choose from various types of adsorbents, such as:
@@ -40,15 +40,12 @@ Choose from various types of adsorbents, such as:
 - Amine-based adsorbents
 - Metal-organic frameworks (MOFs)
 
-Or create you custom adsorbant!
+Or create you own custom adsorbant!
 
 **4. Humidity Control**
-You can also precisely control humidity levels in the incoming air. This is crucial because humidity can significantly impact the adsorption process, especially in systems that capture both CO₂ and water.
+You can also precisely control humidity levels in the incoming air. This is crucial because humidity can significantly impact the adsorption process, especially in systems that capture both CO₂ and water. AdsorpSim supports dual adsorption of both CO₂ and water vapor, which is critical for accurate simulation in real-world applications.
 
-**5. Dual Adsorption Modeling for CO₂ and H₂O**
-AdsorpSim supports dual adsorption of both CO₂ and water vapor. This feature models how water and CO₂ adsorb simultaneously on the same surface, which is critical for accurate simulation in real-world applications.
-
-**6. User Interface (UI)**
+**5. User Interface (UI)**
 For ease of use, AdsorpSim provides a user interface to interact with the simulation parameters. The interface allows you to input parameters interactively and view results in real-time.
 
 You'll quickly get access to: 
@@ -56,10 +53,10 @@ You'll quickly get access to:
 - Graphs: Visualize adsorption breakthrough curves for both CO₂ and H₂O.
 - Adsorbed Amounts: See the total amount of CO₂ and H₂O adsorbed in the system over time.
 
-**7. Optimal Adsorption Time Calculation**
+**6. Optimal Adsorption Time Calculation**
 The tool will calculate the optimal time to reach a specific CO₂ capture percentage. You can set your desired capture percentage, and the model will determine the best adsorption time to reach that level of efficiency.
 
-This feature is essential for optimizing direct air capture  systems, ensuring maximum efficiency in capturing CO₂ while minimizing energy usage.
+This feature is essential for optimizing direct air capture systems, ensuring maximum efficiency in capturing CO₂ while minimizing energy usage.
 
 ## 👩‍💻 Installation
 
