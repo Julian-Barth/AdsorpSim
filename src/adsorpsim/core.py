@@ -4,6 +4,8 @@ from scipy.integrate import solve_ivp
 from pathlib import Path
 import pandas as pd
 import os
+from scipy.optimize import minimize
+import warnings
 
 class Adsorbent_Langmuir:
     def __init__(self, name, q_max_CO2, K_CO2, k_ads_CO2, density, q_max_H2O=0, K_H2O=0, k_ads_H2O=0):
@@ -202,10 +204,122 @@ def get_adsorbed_quantity(outlet_conc, pc_point_x, pc_point_y, flow_rate):
             adsorbed_array=np.append(adsorbed_array, adsorbed)
     return sum(adsorbed_array)*flow_rate*pc_point_x
 
+def fit_adsorption_parameters_from_csv(csv_path, bed_template, initial_guess=[4.0, 0.2, 1], plot=True):
+    """
+    Fit the Langmuir adsorption parameters to experimental CO2 breakthrough data.
+
+    Parameters:
+        csv_path (str): Path to CSV file containing 'time' and 'outlet_CO2' columns.
+        bed_template (Bed): A Bed object with all fixed parameters except the adsorbent (can use dummy adsorbent initially).
+        initial_guess (list): [q_max_CO2, K_CO2, k_ads_CO2]
+        plot (bool): Whether to plot the fit after optimization.
+
+    Returns:
+        Adsorbent_Langmuir: Fitted adsorbent object.
+    """
+    # Load experimental data
+    df = pd.read_csv(csv_path)
+    t_exp = df['time'].values
+    outlet_CO2_exp = df['outlet_CO2'].values
+
+    def loss(params):
+        q_max, K, k_ads = params
+
+        ads = Adsorbent_Langmuir(
+            name="Fitted",
+            q_max_CO2=q_max,
+            K_CO2=K,
+            k_ads_CO2=k_ads,
+            density=bed_template.adsorbent.density,  # Use same density
+        )
+        bed = Bed(
+            length=bed_template.length,
+            diameter=bed_template.diameter,
+            flow_rate=bed_template.flow_rate,
+            num_segments=bed_template.num_segments,
+            total_time=bed_template.total_time,
+            adsorbent=ads,
+            humidity_percentage=bed_template.humidity_percentage
+        )
+
+        try:
+            t_model, outlet_model, _ = bed.simulate()
+            outlet_interp = np.interp(t_exp, t_model, outlet_model)
+            error = np.mean((outlet_interp - outlet_CO2_exp)**2)
+            return error
+        except Exception as e:
+            print("Simulation failed for parameters:", params)
+            return 1e6  # penalize failed simulations
+
+    print("Starting regression fitting. This may take some time (up to a minute), for shorter runtimes reduce data, segment number or simulation time...")    
+
+    # Optimization
+    result = minimize(loss, initial_guess, method='Nelder-Mead')
+
+    q_max_opt, K_opt, k_ads_opt = result.x
+
+    fitted_adsorbent = Adsorbent_Langmuir(
+        name="Fitted_Adsorbent",
+        q_max_CO2=q_max_opt,
+        K_CO2=K_opt,
+        k_ads_CO2=k_ads_opt,
+        density=bed_template.adsorbent.density
+    )
+
+    print("Fitted Parameters:")
+    print(f"  q_max_CO2 = {q_max_opt:.4f}")
+    print(f"  K_CO2     = {K_opt:.4f}")
+    print(f"  k_ads_CO2 = {k_ads_opt:.4f}")
+
+    if plot:
+        # Plot experimental vs model
+        bed_template.adsorbent = fitted_adsorbent
+        t_sim, outlet_sim, _ = bed_template.simulate()
+        outlet_interp = np.interp(t_exp, t_sim, outlet_sim)
+
+        plt.figure(figsize=(8, 5))
+        plt.plot(t_exp, outlet_CO2_exp, 'ro', label='Experimental')
+        plt.plot(t_sim, outlet_sim, 'b-', label='Fitted Model')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Outlet CO₂ Concentration (mol/m³)')
+        plt.title('Breakthrough Curve Fit')
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+    return fitted_adsorbent
 
 
+def main_1():
+# Initial dummy adsorbent
+    dummy_ads = Adsorbent_Langmuir(
+        name="Dummy",
+        q_max_CO2=1.0,
+        K_CO2=0.1,
+        k_ads_CO2=1.0,
+        density=500
+    )
 
-def main():
+    # Bed template (same geometry/settings as actual experiment)
+    bed_template = Bed(
+        length=1,
+        diameter=0.15,
+        flow_rate=0.01,
+        num_segments=100,
+        total_time=1500,
+        adsorbent=dummy_ads,
+        humidity_percentage=0
+    )
+
+    # Fit the parameters from your CSV file
+    fitted_ads = fit_adsorption_parameters_from_csv(
+        csv_path="data/example_data.csv",
+        bed_template=bed_template,
+        initial_guess=[4.0, 0.2, 1]
+    )
+
+def main_2():
     carbon = Adsorbent_Langmuir(
         name="Activated Carbon",
         q_max_CO2=4.5,
@@ -224,10 +338,10 @@ def main():
         num_segments=100,
         total_time=3000,
         adsorbent=carbon,
-        humidity_percentage=50 # Change this to >0 to include humidity
+        humidity_percentage=0 # Change this to >0 to include humidity
     )
-
     t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
 
 if __name__ == "__main__":
-    main()
+    main_1()
+    #main_2()
