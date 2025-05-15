@@ -45,7 +45,7 @@ class Bed:
         C_CO2[0] = self.initial_conc_CO2
         q_CO2 = np.zeros(self.num_segments)
 
-        if self.initial_conc_H2O > 0:
+        if self.initial_conc_H2O != 0:
             C_H2O = np.zeros(self.num_segments)
             C_H2O[0] = self.initial_conc_H2O
             q_H2O = np.zeros(self.num_segments)
@@ -54,7 +54,7 @@ class Bed:
             return np.concatenate([C_CO2, q_CO2])
 
     def _ode_system(self, t, y):
-        if self.initial_conc_H2O > 0:
+        if self.initial_conc_H2O != 0:
             C_CO2 = y[0:self.num_segments]
             C_H2O = y[self.num_segments:2*self.num_segments]
             q_CO2 = y[2*self.num_segments:3*self.num_segments]
@@ -73,7 +73,7 @@ class Bed:
         dq_CO2_dt = self.adsorbent.k_ads_CO2 * (q_eq_CO2 - q_CO2)
         dC_CO2_dt = -self.velocity * dC_CO2_dz - self.adsorbent.density * dq_CO2_dt
 
-        if self.initial_conc_H2O > 0:
+        if self.initial_conc_H2O != 0:
             dC_H2O_dt = np.zeros_like(C_H2O)
             C_in_H2O = self.initial_conc_H2O
             C_up_H2O = np.concatenate([[C_in_H2O], C_H2O[:-1]])
@@ -88,7 +88,7 @@ class Bed:
         else:
             return np.concatenate([dC_CO2_dt, dq_CO2_dt])
 
-    def simulate(self, plot=False):
+    def simulate(self):
         t_span = (0, self.total_time)
         t_eval = np.linspace(*t_span, self.total_time)
 
@@ -105,25 +105,14 @@ class Bed:
         C_CO2_sol = sol.y[0:self.num_segments, :]
         outlet_CO2 = C_CO2_sol[-1, :]
 
-        outlet_H2O = None
-        if self.initial_conc_H2O > 0:
+        #outlet_H2O = None
+        if self.initial_conc_H2O != 0:
             C_H2O_sol = sol.y[self.num_segments:2*self.num_segments, :]
             outlet_H2O = C_H2O_sol[-1, :]
-
-        if plot:
-            plt.figure(figsize=(8, 5))
-            plt.plot(sol.t, outlet_CO2, label="Outlet CO₂")
-            if outlet_H2O is not None:
-                plt.plot(sol.t, outlet_H2O, label="Outlet H₂O", linestyle='--')
-            plt.xlabel('Time (s)')
-            plt.ylabel('Outlet Concentration (mol/m³)')
-            plt.title('Breakthrough Curve')
-            plt.grid(True)
-            plt.legend()
-            plt.tight_layout()
-            plt.show()
-
-        return sol.t, outlet_CO2, outlet_H2O
+            return sol.t, outlet_CO2, outlet_H2O
+        else:
+            return sol.t, outlet_CO2, None
+        
 
 #the data were not cached as it does not allow the apparition of new asorbent imputted from the app 
 def download_data(csv_file):
@@ -152,7 +141,7 @@ def get_percentage_point(percentage:int, t, outlet_conc):
     pc_point_x = t[index]
     return pc_point_x, pc_point_y
 
-def plot_the_graph(t,outlet_conc,pc_point_x,pc_point_y):
+def plot_the_graph(t,outlet_CO2,outlet_H2O,pc_point_x=0,pc_point_y=0):
     """
     This function plots the breakthrough graph
     """
@@ -161,7 +150,10 @@ def plot_the_graph(t,outlet_conc,pc_point_x,pc_point_y):
     #the point at wich the desired percentage of adsorbent is saturated in CO2 is plotted
     ax.plot(pc_point_x, pc_point_y, "rx", markersize=10, label="Percentage point",zorder=3)
     #the breakthrough curve is plotted
-    ax.plot(t, outlet_conc, label="Outlet CO₂ Concentration",zorder=1)
+    ax.plot(t, outlet_CO2, label="Outlet CO₂ Concentration",zorder=1)
+    #if the humidity is not null, the outlet concentration of H2O is plotted
+    if outlet_H2O is not None:
+        ax.plot(t, outlet_H2O, label="Outlet H₂O Concentration", linestyle='--',zorder=2)
     #the template of the graph is defined
     ax.set_xlabel('Time (s)')
     ax.set_ylabel('Outlet CO₂ Concentration (mol/m³)')
@@ -170,7 +162,7 @@ def plot_the_graph(t,outlet_conc,pc_point_x,pc_point_y):
     ax.grid(True)
     return fig
 
-def add_adsorbent_to_list(CSV_PATH, name, q_max, K0, Ea, k_ads, density):
+def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, q_max_H2O, K_H2O, k_ads_H2O):
     """
     This function reads a given .csv file 
     and adds a row containing the different needed physical property of an adsorbent
@@ -180,11 +172,13 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max, K0, Ea, k_ads, density):
     #creation of a dataframe with the new line (new adsorbent)
     new_row = {
     "name": name,
-    "q_max": q_max,
-    "K0": K0,
-    "Ea": Ea,
-    "k_ads": k_ads,
-    "density": density
+    "q_max_CO2": q_max_CO2,
+    "K_CO2": K_CO2,
+    "k_ads_CO2": k_ads_CO2,
+    "density": density,
+    "q_max_H2O": q_max_H2O,
+    "K_H2O": K_H2O,
+    "k_ads_H2O": k_ads_H2O
     }
     #the file is read and the new adsorbent is added
     df = pd.read_csv(CSV_PATH, sep=";")
@@ -192,7 +186,7 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max, K0, Ea, k_ads, density):
     #the file is saved 
     df.to_csv(CSV_PATH, sep=";", index=False)
 
-def get_adsorbed_quantity(t,outlet_conc, pc_point_x, pc_point_y, flow_rate):
+def get_adsorbed_quantity(outlet_conc, pc_point_x, pc_point_y, flow_rate):
     """
     This function will calculate the quantity of adsorbed CO₂ in mol 
 
@@ -230,10 +224,38 @@ def main():
         num_segments=100,
         total_time=3000,
         adsorbent=carbon,
-        humidity_percentage=50 # Change this to >0 to include humidity
+        humidity_percentage=10 # Change this to >0 to include humidity
     )
 
-    t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
+    t, outlet_CO2, outlet_H2O = bed.simulate()
 
 if __name__ == "__main__":
     main()
+
+carbon = Adsorbent_Langmuir(
+    name="Activated Carbon",
+    q_max_CO2=4.5,
+    K_CO2=0.2,
+    k_ads_CO2=15,
+    density=500,
+    q_max_H2O=0.15,
+    K_H2O=0.05,
+    k_ads_H2O=0.005
+)
+
+bed = Bed(
+    length=1,
+    diameter=0.15,
+    flow_rate=0.01,
+    num_segments=100,
+    total_time=3000,
+    adsorbent=carbon,
+    humidity_percentage=0 # Change this to >0 to include humidity
+)
+
+t, outlet_CO2, outlet_H2O = bed.simulate()
+#plot_the_graph(t, outlet_CO2, outlet_H2O)
+#plt.show()  
+
+print(outlet_H2O)
+print(bed)

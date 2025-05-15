@@ -20,6 +20,14 @@ adsorpsim.functions module
    :undoc-members:
    :show-inheritance:
 
+adsorpsim.streamlit\_app module
+-------------------------------
+
+.. automodule:: adsorpsim.streamlit_app
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
