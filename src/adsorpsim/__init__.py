@@ -12,8 +12,6 @@ from .core import (
     get_adsorbed_quantity,
 )
 
-from .functions import langmuir_adsorption_carbon
-
 __all__ = [
     "Adsorbent_Langmuir",
     "Bed",

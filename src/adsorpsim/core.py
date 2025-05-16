@@ -340,9 +340,9 @@ def main_2():
         adsorbent=carbon,
         humidity_percentage=0 # Change this to >0 to include humidity
     )
-    t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
-
+    t, outlet_CO2, outlet_H2O = bed.simulate(
+    )
+    
 if __name__ == "__main__":
     #main_1()
-    #main_2()
-    pass
+    main_2()
