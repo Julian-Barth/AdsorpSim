@@ -188,7 +188,7 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, 
     #the file is saved 
     df.to_csv(CSV_PATH, sep=";", index=False)
 
-def get_adsorbed_quantity(outlet_conc, pc_point_x, pc_point_y, flow_rate):
+def get_adsorbed_quantity_CO2(outlet_conc, pc_point_x, pc_point_y, flow_rate):
     """
     This function will calculate the quantity of adsorbed CO₂ in mol 
 
@@ -203,6 +203,26 @@ def get_adsorbed_quantity(outlet_conc, pc_point_x, pc_point_y, flow_rate):
             adsorbed=0.01624-elem
             adsorbed_array=np.append(adsorbed_array, adsorbed)
     return sum(adsorbed_array)*flow_rate*pc_point_x
+
+def get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O, humidity_precentage, pc_point_x, pc_point_y, flow_rate):
+    """
+    This function will calculate the quantity of adsorbed H₂O in mol 
+
+    An array containing the concentration of adsorbed H₂O per m³ is created with all the concentrations from the start to the red cross, (which represents the desired percentage of saturated adsorbent in CO₂)
+    
+    The component of the array are then summed and multiplied by the acquisition time and the flowrate to retrieve a quantity of matter in moles.
+    """
+    if outlet_H2O is not None:
+        adsorbed_array=np.array([])
+        index = np.where(outlet_CO2 == pc_point_y)[0][0]
+        max_value = 0.0173 * (humidity_precentage / 100)  # max H2O concentration at given humidity
+        for elem in outlet_H2O[:round(index)+1]:
+            if elem<max_value:
+                adsorbed=max_value-elem
+                adsorbed_array=np.append(adsorbed_array, adsorbed)
+        return sum(adsorbed_array)*flow_rate*pc_point_x
+    else:
+        return 0
 
 def fit_adsorption_parameters_from_csv(df, bed_template, initial_guess=[4.0, 0.2, 1]):
     """
@@ -275,63 +295,3 @@ def fit_adsorption_parameters_from_csv(df, bed_template, initial_guess=[4.0, 0.2
     ax.grid(True)
     
     return fitted_adsorbent,fig
-
-
-def main_1():
-# Initial dummy adsorbent
-    dummy_ads = Adsorbent_Langmuir(
-        name="Dummy",
-        q_max_CO2=1.0,
-        K_CO2=0.1,
-        k_ads_CO2=1.0,
-        density=500
-    )
-
-    # Bed template (same geometry/settings as actual experiment)
-    bed_template = Bed(
-        length=1,
-        diameter=0.15,
-        flow_rate=0.01,
-        num_segments=100,
-        total_time=1500,
-        adsorbent=dummy_ads,
-        humidity_percentage=0
-    )
-
-    # Fit the parameters from your CSV file
-    fitted_ads = fit_adsorption_parameters_from_csv(
-        csv_path="data/example_data.csv",
-        bed_template=bed_template,
-        initial_guess=[4.0, 0.2, 1]
-    )
-
-
-
-
-
-def main_2():
-    carbon = Adsorbent_Langmuir(
-        name="Activated Carbon",
-        q_max_CO2=4.5,
-        K_CO2=0.2,
-        k_ads_CO2=15,
-        density=500,
-        q_max_H2O=0.15,
-        K_H2O=0.05,
-        k_ads_H2O=0.005
-    )
-
-    bed = Bed(
-        length=1,
-        diameter=0.15,
-        flow_rate=0.01,
-        num_segments=100,
-        total_time=3000,
-        adsorbent=carbon,
-        humidity_percentage=0 # Change this to >0 to include humidity
-    )
-    t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
-
-if __name__ == "__main__":
-    main_1()
-    #main_2()

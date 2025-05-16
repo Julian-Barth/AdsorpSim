@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import os
 from core import Bed, Adsorbent_Langmuir
-from core import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity,fit_adsorption_parameters_from_csv
+from core import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_csv
 
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))
@@ -144,15 +144,12 @@ if submitted:
 #### Plotting:
 
 #different values needed for plotting the graph are calculated using functions that are shown in "core.py"
-
 t, outlet_CO2, outlet_H2O = bed.simulate()
 pc_point_x, pc_point_y = get_percentage_point(percentage_CO2,t,outlet_CO2)
 #a toggle to show or not the graph is created
 on_off = st.toggle("Show the graph", value=True)
 if on_off:
     st.pyplot(plot_the_graph(t,outlet_CO2,outlet_H2O,pc_point_x,pc_point_y))
-
-
 
 
 
@@ -164,15 +161,17 @@ col11, col22 = st.columns([1, 1])
 with col11:
     #in this tile, the quantity of matter of adsorbed CO2 is calculated and shown
     tile1=st.container(height = 120)
-    adsorbed_quantity=get_adsorbed_quantity(outlet_CO2,pc_point_x,pc_point_y,flow_rate)
-    tile1.metric("Quantity of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity, 2)} [mol]")
+    adsorbed_quantity_CO2=get_adsorbed_quantity_CO2(outlet_CO2,pc_point_x,pc_point_y,flow_rate)
+    tile1.metric("Quantity of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity_CO2, 2)} [mol]")
     #in this tile, the time of acquisition is shown. It was deducted from the x coordinate of the red cross
-    tile3=st.container(height=120)
-    tile3.metric("Acquisition time", f"{round(pc_point_x/60)} [min]")
-#in the right part, the mass of captured CO2 is shown
+    tile4=st.container(height=120)
+    tile4.metric("Acquisition time", f"{round(pc_point_x/60)} [min]")
 with col22:
     tile2=st.container(height = 120)
-    tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*0.044009, 2)} [kg]")
+    tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity_CO2*0.044009, 2)} [kg]")
+    #in this tile, the mass of adsorbed water is calculated and shown
+    tile3=st.container(height = 120)
+    tile3.metric("Mass of adsorbed H₂O in one cycle", f"{round(get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O,humidity_percentage,pc_point_x,pc_point_y,flow_rate)*0.018015, 2)} [kg]")
 
 
 ### adsorbent parameters from csv file:
@@ -190,8 +189,9 @@ data = pd.DataFrame(
 )
 # Affichage
 st.dataframe(data, use_container_width=True)
-
-uploaded_file = st.file_uploader("Drag and drop your csv file here ⚠ Adding a file will significantly increase the running time of the app", type="csv")
+st.markdown("Drag and drop your csv file here, the fitted curve will respect the previously given bed parameters")
+st.markdown(" ⚠ Adding a file may significantly increase the running time of the app ⚠")
+uploaded_file = st.file_uploader("", type="csv")
 
 if uploaded_file is not None:
     st.write("Please enter the assumed density of the adsorbent.")
