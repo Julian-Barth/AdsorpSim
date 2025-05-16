@@ -116,7 +116,7 @@ class Bed:
             return sol.t, outlet_CO2, None
         
 
-#the data were not cached as it does not allow the apparition of new asorbent imputted from the app 
+#the data were not cached as it does not allow the apparition of new asorbent inputted from the app 
 def download_data(csv_file):
     "Download the adsorbent database"
     df = pd.read_csv(csv_file, sep= ";")
