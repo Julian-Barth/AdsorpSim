@@ -4,24 +4,30 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import pandas as pd
 import os
-from src.adsorpsim.core import Bed, Adsorbent_Langmuir,download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity
+from core import Bed, Adsorbent_Langmuir,download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity
+
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))
-csv_file = current_file / "data" / "Dataset PPC.csv"
+csv_file = current_file.parents[2] / "AdsorpSim" / "data" / "Dataset PPC.csv"
+
 #the data are downloaded
 df = download_data(csv_file)
+print(df)
 #a dictionnary indexed by the adsorbents names is created, there is an entry for each adsorbent present in the dataset
 adsorbants = {}
 for _, row in df.iterrows():
     ads = Adsorbent_Langmuir(
         name=row["name"],
-        q_max=row["q_max"],
-        K0=row["K0"],
-        Ea=row["Ea"],
-        k_ads=row["k_ads"],
-        density=row["density"]
+        q_max_CO2=row["q_max_CO2"],
+        K_CO2=row["K_CO2"],
+        k_ads_CO2=row["k_ads_CO2"],
+        density=row["density"],
+        q_max_H2O=row["q_max_H2O"],
+        K_H2O=row["K_H2O"],
+        k_ads_H2O=row["k_ads_H2O"]
     )
     adsorbants[row["name"]] = ads
+
 #a list of all the registered adsorbents is created
 list_adsorbents = list(adsorbants.keys())
 
@@ -44,7 +50,7 @@ with col1:
 with col2:
     num_segments = st.slider('Number of Segments', 10, 500, 100)
     total_time = st.slider('Total Simulation Time (s)', 100, 10000, 3000)
-    T = st.number_input("Temperature (K)", 298.15, step = 10.0)
+    humidity_percentage = st.slider("Percentage of humidity (%)", 0, 100, 0)
 #a percentage of wanted saturated adsorbent is defined
 #this will be further used to calculate the quantity of fixed CO2 depending on the capacity's fraction
 percentage_CO2 = st.slider("Percentage of adsorbent saturated in CO₂", 1, 100, 90)
@@ -59,25 +65,65 @@ st.sidebar.header("List of registered adsorbant")
 choix = st.sidebar.selectbox(
     "Choose an adsorbent",
     ["Manual Modifications"]+list_adsorbents,
-    index=1
+    index=0
 )
 #code for the manual modifications setting:
 if choix=="Manual Modifications":
     #the adsorbent parameters are chosen from the user's interface with defaults settings
     st.sidebar.header('Adsorbent Properties')
-    q_max = st.sidebar.number_input('q_max (mol/kg)', value=1.0, step=1.0)
-    K0 = st.sidebar.number_input('K (1/(mol/m³))', value=10000.0,step=10000.0)
-    Ea = st.sidebar.number_input("Ea (J)", value=10000.0,step=10000.0)
-    k_ads = st.sidebar.number_input('k_ads (1/s)', value=0.01,format="%.4f",step=0.0100)
-    density = st.sidebar.number_input('Density (kg/m³)', value=100.0,step=100.0)
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown("Q<sub>max,CO₂</sub> [mol/kg]", unsafe_allow_html=True) 
+    with col2:
+        q_max_CO2 = st.number_input('', value=1.0, step=1.0,key="q_max_CO2")
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown('K<sub>CO₂</sub> [m³/mol]', unsafe_allow_html=True)
+    with col2:
+        K_CO2 = st.number_input('', value=10000.0,step=10000.0, key="K_CO2")
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown("k<sub>ads,CO₂</sub> [1/s]", unsafe_allow_html=True)
+    with col2:
+        k_ads_CO2 = st.number_input('', value=0.01,format="%.4f",step=0.0100,key="k_ads_CO2")
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown("Density [kg/m³]", unsafe_allow_html=True)
+    with col2:
+        density = st.number_input('', value=100.0,step=100.0,key="density")
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown("Q<sub>max,H₂O</sub> [mol/kg]", unsafe_allow_html=True)
+    with col2:
+        q_max_H2O = st.number_input('', value=1.0, step=1.0,key="q_max_H2O")
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown("K<sub>H₂O</sub> [m³/mol]", unsafe_allow_html=True)
+    with col2:
+        K_H2O = st.number_input('', value=10000.0,step=10000.0, key="K_H2O")
+    with st.sidebar:
+        col1, col2 = st.columns([2, 2])
+    with col1:
+        st.markdown("k<sub>ads, H₂O</sub> [1/s]", unsafe_allow_html=True)
+    with col2:
+        k_ads_H2O = st.number_input('', value=0.01,format="%.4f",step=0.0100,key="k_ads_H2O")
+
     # Create adsorbent
     adsorbent = Adsorbent_Langmuir(
     name="Manual adsorbant",
-    q_max=q_max,
-    K0=K0,
-    Ea=Ea,
-    k_ads=k_ads,
-    density=density
+    q_max_CO2=q_max_CO2,
+    K_CO2=K_CO2,
+    k_ads_CO2=k_ads_CO2,
+    density=density,
+    q_max_H2O=q_max_H2O,
+    K_H2O=K_H2O,
+    k_ads_H2O=k_ads_H2O,
     )
     #create bed
     bed = Bed(
@@ -87,17 +133,20 @@ if choix=="Manual Modifications":
     num_segments=num_segments,
     total_time=total_time,
     adsorbent=adsorbent,
-    T=T
+    humidity_percentage=humidity_percentage
 )
+    print(bed)
 #code for the adsorbents registered in the dataset
 else:
     #adsorbent parameters
     st.sidebar.header('Adsorbent Properties')
-    q_max_fixed = st.sidebar.number_input('q_max (mol/kg)', value=adsorbants[choix].q_max , disabled=True, step=1.0)
-    K0_fixed = st.sidebar.number_input('K (1/(mol/m³))', value=adsorbants[choix].K0 , disabled=True,step=10000.0)
-    Ea_fixed = st.sidebar.number_input(("Ea (J)"), value=adsorbants[choix].Ea , disabled=True,step=10000.0)
-    k_ads_fixed = st.sidebar.number_input('k_ads (1/s)', value=adsorbants[choix].k_ads , disabled=True,format="%.4f",step=0.01)
-    density_fixed = st.sidebar.number_input('Density (kg/m³)', value=adsorbants[choix].density , disabled=True,step=100.0)
+    q_max_CO2_ad = st.sidebar.number_input('Q<sub>max,CO₂</sub>', value=adsorbants[choix].q_max_CO2, step=1.0)
+    K_CO2_ad = st.sidebar.number_input('K<sub>H2O</sub> [m³/mol]', value=adsorbants[choix].K_CO2 , step=10000.0)
+    k_ads_CO2_ad = st.sidebar.number_input('k<sub>ads, H2O</sub> [1/s]', value=adsorbants[choix].k_ads_CO2 ,format="%.4f",step=0.01)
+    density_ad = st.sidebar.number_input('Density [kg/m³]', value=adsorbants[choix].density ,step=100.0)
+    q_max_H2O_ad = st.sidebar.number_input('Q<sub>max,H2O</sub> [mol/kg]', value=adsorbants[choix].q_max_H2O , step=1.0)
+    K_H2O_ad = st.sidebar.number_input('K<sub>H2O</sub> [m³/mol]', value=adsorbants[choix].K_H2O, step=10000.0)
+    k_ads_H2O_ad = st.sidebar.number_input('k<sub>ads, H2O</sub> [1/s]', value=adsorbants[choix].k_ads_H2O ,format="%.4f",step=0.01)
     # Select adsorbent in the previously created dictionnary
     adsorbent = adsorbants[choix]
     #create bed
@@ -108,28 +157,31 @@ else:
     num_segments=num_segments,
     total_time=total_time,
     adsorbent=adsorbent,
-    T=T
+    humidity_percentage=humidity_percentage
 )
 
+    print(bed)
 #Bonus sidebar: the user has the possibility to implement an adsorbents in the dataset directly from the app
 st.sidebar.header("Add an adsorbent to the list")
 #the constants of the adsorbent has to be listed
 with st.sidebar.form("Ajout adsorbent"):
     add_ads_name = st.text_input("name")
-    add_ads_q_max = st.number_input("q_max (mol/kg)")
-    add_ads_K0 = st.number_input("K0 (1/(mol/m³))")
-    add_ads_Ea = st.number_input("Ea (J)")
-    add_ads_k_ads = st.number_input("k_ads (1/s)")
+    add_ads_q_max_CO2 = st.number_input("q_max_CO2 (mol/kg)")
+    add_ads_K_CO2 = st.number_input("K_CO2 (1/(mol/m³))")
+    add_ads_k_ads_CO2 = st.number_input("k_ads_CO2 (1/s)")
     add_ads_density = st.number_input("density (kg/m³)")
+    add_ads_q_max_H2O = st.number_input("q_max_H2O (mol/kg)")
+    add_ads_K_H2O = st.number_input("K_H2O (1/(mol/m³))")
+    add_ads_k_ads_H2O = st.number_input("k_ads_H2O (1/s)")
     #the use of a form ensures the app will not rerun after each input but only after the button is pressed
     submitted = st.form_submit_button("Add the adsorbent to the list")
 #when the button is pressed, the programm will either notify a missing information or add the adsorbent in the dataset
 if submitted:
-    if add_ads_name=="" or add_ads_q_max==0 or add_ads_K0==0 or add_ads_Ea==0 or add_ads_k_ads==0 or add_ads_density==0:
+    if add_ads_name=="" or add_ads_q_max_CO2==0 or add_ads_K_CO2==0 or add_ads_k_ads_CO2==0 or add_ads_k_ads_H2O==0 or add_ads_density==0 or add_ads_q_max_H2O==0 or add_ads_K_H2O==0:
         st.sidebar.error("there is missing parameter(s)")
     else:
-        #add the adsorbent to the .csv file
-        add_adsorbent_to_list(csv_file,add_ads_name,add_ads_q_max,add_ads_K0,add_ads_Ea,k_ads,add_ads_density)
+    #add the adsorbent to the .csv file
+        add_adsorbent_to_list(csv_file,add_ads_name,add_ads_q_max_CO2,add_ads_K_CO2,k_ads_CO2,add_ads_density,add_ads_q_max_H2O,add_ads_K_H2O,k_ads_H2O)
         st.sidebar.success("The adsorbent was added to the list, please refresh the page (Ctrl+R)")
 
 
@@ -137,12 +189,15 @@ if submitted:
 #### Plotting:
 
 #different values needed for plotting the graph are calculated using functions that are shown in "core.py"
-t, outlet_conc = bed.simulate(plot=False)
-pc_point_x, pc_point_y = get_percentage_point(percentage_CO2,t,outlet_conc)
+
+t, outlet_CO2, outlet_H2O = bed.simulate()
+pc_point_x, pc_point_y = get_percentage_point(percentage_CO2,t,outlet_CO2)
 #a toggle to show or not the graph is created
 on_off = st.toggle("Show the graph", value=True)
 if on_off:
-    st.pyplot(plot_the_graph(t,outlet_conc,pc_point_x,pc_point_y))
+    st.pyplot(plot_the_graph(t,outlet_CO2,outlet_H2O,pc_point_x,pc_point_y))
+
+
 
 
 
@@ -154,7 +209,7 @@ col11, col22 = st.columns([1, 1])
 with col11:
     #in this tile, the quantity of matter of adsorbed CO2 is calculated and shown
     tile1=st.container(height = 120)
-    adsorbed_quantity=get_adsorbed_quantity(t,outlet_conc,pc_point_x,pc_point_y,flow_rate)
+    adsorbed_quantity=get_adsorbed_quantity(outlet_CO2,pc_point_x,pc_point_y,flow_rate)
     tile1.metric("Quantity of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity, 2)} [mol]")
     #in this tile, the time of acquisition is shown. It was deducted from the x coordinate of the red cross
     tile3=st.container(height=120)
@@ -163,3 +218,13 @@ with col11:
 with col22:
     tile2=st.container(height = 120)
     tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*0.044009, 2)} [kg]")
+
+
+st.title("Upload de fichier CSV")
+
+uploaded_file = st.file_uploader("Déposez un fichier CSV ici", type="csv")
+
+if uploaded_file is not None:
+    df2 = pd.read_csv(uploaded_file)
+    st.write("Aperçu du fichier :")
+    st.dataframe(df2)

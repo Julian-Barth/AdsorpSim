@@ -1,9 +1,2 @@
-name;q_max;K0;Ea;k_ads;density
-Activated Carbon;2.0;20000.0;25000.0;0.01;1000.0
-Activated Carbon2;1.0;10000.0;12500.0;0.02;500.0
-Activated Carbon3;1.0;10000.0;12500.0;0.002;500.0
-test;10.0;10.0;10.0;10.0;10.0
-test2;10.0;10.0;10.0;10.0;10.0
-oui;1.0;1.0;1.0;1.0;1.0
-ouioui;2.0;2.0;2.0;2.0;2.0
-rrrrr;0.05;3.0;3.0;0.005;4.0
+name;q_max_CO2;K_CO2;k_ads_CO2;density;q_max_H2O;K_H2O;k_ads_H2O
+Activated Carbon;2.0;20000.0;0.02;1000.0;1.0;10000.0;0.01
