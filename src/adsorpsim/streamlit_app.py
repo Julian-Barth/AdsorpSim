@@ -171,7 +171,7 @@ with col22:
     tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity_CO2*0.044009, 2)} [kg]")
     #in this tile, the mass of adsorbed water is calculated and shown
     tile3=st.container(height = 120)
-    tile3.metric("Mass of adsorbed H₂O in one cycle", f"{round(get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O,humidity_percentage,pc_point_x,pc_point_y,flow_rate)*0.018015, 2)} [kg]")
+    tile3.metric("Mass of adsorbed H₂O in one cycle", f"{round(get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O,humidity_percentage,pc_point_x,pc_point_y,flow_rate)*0.018015, 4)} [kg]")
 
 
 ### adsorbent parameters from csv file:
