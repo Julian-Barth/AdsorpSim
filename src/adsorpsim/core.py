@@ -309,9 +309,9 @@ def main_1():
 
     # Bed template (same geometry/settings as actual experiment)
     bed_template = Bed(
-        length=1,
-        diameter=0.15,
-        flow_rate=0.01,
+        length=0.3,
+        diameter=0.1,
+        flow_rate=1,
         num_segments=100,
         total_time=1500,
         adsorbent=dummy_ads,
@@ -320,7 +320,7 @@ def main_1():
 
     # Fit the parameters from your CSV file
     fitted_ads = fit_adsorption_parameters_from_csv(
-        csv_path="data/example_data.csv",
+        csv_path="data/real_data.csv",
         bed_template=bed_template,
         initial_guess=[4.0, 0.2, 1]
     )
