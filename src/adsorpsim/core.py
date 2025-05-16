@@ -343,5 +343,5 @@ def main_2():
     t, outlet_CO2, outlet_H2O = bed.simulate(plot=True)
 
 if __name__ == "__main__":
-    main_1()
+    #main_1()
     #main_2()
