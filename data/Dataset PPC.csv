@@ -1,2 +1,2 @@
 name;q_max_CO2;K_CO2;k_ads_CO2;density;q_max_H2O;K_H2O;k_ads_H2O
-Activated Carbon;5.0;0.02;0.2;800.0;3.0;.001;0.1
+Activated Carbon;5.0;0.2;0.02;800.0;3.0;.001;0.1
