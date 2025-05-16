@@ -12,7 +12,7 @@ csv_file = current_file.parents[2] / "AdsorpSim" / "data" / "Dataset PPC.csv"
 
 #the data are downloaded
 df = download_data(csv_file)
-print(df)
+
 #a dictionnary indexed by the adsorbents names is created, there is an entry for each adsorbent present in the dataset
 adsorbants = {}
 for _, row in df.iterrows():
@@ -70,49 +70,13 @@ choix = st.sidebar.selectbox(
 #code for the manual modifications setting:
 if choix=="Manual Modifications":
     #the adsorbent parameters are chosen from the user's interface with defaults settings
-    st.sidebar.header('Adsorbent Properties')
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown("Q<sub>max,CO₂</sub> [mol/kg]", unsafe_allow_html=True) 
-    with col2:
-        q_max_CO2 = st.number_input('', value=1.0, step=1.0,key="q_max_CO2")
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown('K<sub>CO₂</sub> [m³/mol]', unsafe_allow_html=True)
-    with col2:
-        K_CO2 = st.number_input('', value=10000.0,step=10000.0, key="K_CO2")
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown("k<sub>ads,CO₂</sub> [1/s]", unsafe_allow_html=True)
-    with col2:
-        k_ads_CO2 = st.number_input('', value=0.01,format="%.4f",step=0.0100,key="k_ads_CO2")
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown("Density [kg/m³]", unsafe_allow_html=True)
-    with col2:
-        density = st.number_input('', value=100.0,step=100.0,key="density")
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown("Q<sub>max,H₂O</sub> [mol/kg]", unsafe_allow_html=True)
-    with col2:
-        q_max_H2O = st.number_input('', value=1.0, step=1.0,key="q_max_H2O")
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown("K<sub>H₂O</sub> [m³/mol]", unsafe_allow_html=True)
-    with col2:
-        K_H2O = st.number_input('', value=10000.0,step=10000.0, key="K_H2O")
-    with st.sidebar:
-        col1, col2 = st.columns([2, 2])
-    with col1:
-        st.markdown("k<sub>ads, H₂O</sub> [1/s]", unsafe_allow_html=True)
-    with col2:
-        k_ads_H2O = st.number_input('', value=0.01,format="%.4f",step=0.0100,key="k_ads_H2O")
+    q_max_CO2 = st.sidebar.number_input('Q (max, CO₂) [mol/kg]', value=5.0, step=1.0)
+    K_CO2 = st.sidebar.number_input('K (CO₂) [m³/mol]', value=0.01,format="%.4f", step=0.01)
+    k_ads_CO2= st.sidebar.number_input('k (ads, H₂O) [1/s]', value=0.1,format="%.4f", step=0.1)
+    density = st.sidebar.number_input('Density [kg/m³]', value=800.0 ,step=100.0)
+    q_max_H2O = st.sidebar.number_input('Q (max, H₂O) [mol/kg]', value=5.0 , step=1.0)
+    K_H2O= st.sidebar.number_input('K (H₂O) [m³/mol]', value=0.01,format="%.4f", step=0.01)
+    k_ads_H2O = st.sidebar.number_input('k (ads, H₂O) [1/s]', value=0.1,format="%.4f", step=0.1, key="k_ads_H2O")
 
     # Create adsorbent
     adsorbent = Adsorbent_Langmuir(
@@ -135,20 +99,29 @@ if choix=="Manual Modifications":
     adsorbent=adsorbent,
     humidity_percentage=humidity_percentage
 )
-    print(bed)
+
 #code for the adsorbents registered in the dataset
 else:
     #adsorbent parameters
     st.sidebar.header('Adsorbent Properties')
-    q_max_CO2_ad = st.sidebar.number_input('Q<sub>max,CO₂</sub>', value=adsorbants[choix].q_max_CO2, step=1.0)
-    K_CO2_ad = st.sidebar.number_input('K<sub>H2O</sub> [m³/mol]', value=adsorbants[choix].K_CO2 , step=10000.0)
-    k_ads_CO2_ad = st.sidebar.number_input('k<sub>ads, H2O</sub> [1/s]', value=adsorbants[choix].k_ads_CO2 ,format="%.4f",step=0.01)
+    q_max_CO2_ad = st.sidebar.number_input('Q (max, CO₂) [mol/kg]', value=adsorbants[choix].q_max_CO2, step=1.0)
+    K_CO2_ad = st.sidebar.number_input('K (CO₂) [m³/mol]', value=adsorbants[choix].K_CO2 , step=0.01,format="%.4f")
+    k_ads_CO2_ad = st.sidebar.number_input('k (ads, CO₂) [1/s]', value=adsorbants[choix].k_ads_CO2 ,format="%.4f",step=0.1)
     density_ad = st.sidebar.number_input('Density [kg/m³]', value=adsorbants[choix].density ,step=100.0)
-    q_max_H2O_ad = st.sidebar.number_input('Q<sub>max,H2O</sub> [mol/kg]', value=adsorbants[choix].q_max_H2O , step=1.0)
-    K_H2O_ad = st.sidebar.number_input('K<sub>H2O</sub> [m³/mol]', value=adsorbants[choix].K_H2O, step=10000.0)
-    k_ads_H2O_ad = st.sidebar.number_input('k<sub>ads, H2O</sub> [1/s]', value=adsorbants[choix].k_ads_H2O ,format="%.4f",step=0.01)
-    # Select adsorbent in the previously created dictionnary
-    adsorbent = adsorbants[choix]
+    q_max_H2O_ad = st.sidebar.number_input('Q (max, H₂O) [mol/kg]', value=adsorbants[choix].q_max_H2O , step=1.0)
+    K_H2O_ad = st.sidebar.number_input('K (H₂O) [m³/mol]', value=adsorbants[choix].K_H2O, step=0.01,format="%.4f")
+    k_ads_H2O_ad = st.sidebar.number_input('k (ads, H₂O) [1/s]', value=adsorbants[choix].k_ads_H2O ,format="%.4f",step=0.1)
+    #create modulable adsorbent with the reported parameters
+    adsorbent = Adsorbent_Langmuir(
+    name="Manual adsorbant",
+    q_max_CO2=q_max_CO2_ad,
+    K_CO2=K_CO2_ad,
+    k_ads_CO2=k_ads_CO2_ad,
+    density=density_ad,
+    q_max_H2O=q_max_H2O_ad,
+    K_H2O=K_H2O_ad,
+    k_ads_H2O=k_ads_H2O_ad,
+    )
     #create bed
     bed = Bed(
     length=length,
@@ -160,19 +133,18 @@ else:
     humidity_percentage=humidity_percentage
 )
 
-    print(bed)
 #Bonus sidebar: the user has the possibility to implement an adsorbents in the dataset directly from the app
 st.sidebar.header("Add an adsorbent to the list")
 #the constants of the adsorbent has to be listed
 with st.sidebar.form("Ajout adsorbent"):
     add_ads_name = st.text_input("name")
-    add_ads_q_max_CO2 = st.number_input("q_max_CO2 (mol/kg)")
-    add_ads_K_CO2 = st.number_input("K_CO2 (1/(mol/m³))")
-    add_ads_k_ads_CO2 = st.number_input("k_ads_CO2 (1/s)")
-    add_ads_density = st.number_input("density (kg/m³)")
-    add_ads_q_max_H2O = st.number_input("q_max_H2O (mol/kg)")
-    add_ads_K_H2O = st.number_input("K_H2O (1/(mol/m³))")
-    add_ads_k_ads_H2O = st.number_input("k_ads_H2O (1/s)")
+    add_ads_q_max_CO2 = st.number_input("Q (max, CO₂) [mol/kg]")
+    add_ads_K_CO2 = st.number_input("K (CO₂) [m³/mol]")
+    add_ads_k_ads_CO2 = st.number_input("k (ads, CO₂) [1/s]")
+    add_ads_density = st.number_input("Density [kg/m³]")
+    add_ads_q_max_H2O = st.number_input("Q (max, H₂O) [mol/kg]")
+    add_ads_K_H2O = st.number_input("K (H₂O) [m³/mol]")
+    add_ads_k_ads_H2O = st.number_input("k (ads, H₂O) [1/s]")
     #the use of a form ensures the app will not rerun after each input but only after the button is pressed
     submitted = st.form_submit_button("Add the adsorbent to the list")
 #when the button is pressed, the programm will either notify a missing information or add the adsorbent in the dataset
@@ -218,6 +190,8 @@ with col11:
 with col22:
     tile2=st.container(height = 120)
     tile2.metric("Mass of adsorbed CO₂ in one cycle", f"{round(adsorbed_quantity*0.044009, 2)} [kg]")
+
+
 
 
 st.title("Upload de fichier CSV")
