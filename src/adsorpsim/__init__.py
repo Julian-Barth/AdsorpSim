@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .core import (
+from adsorpsim.core import (
     Adsorbent_Langmuir,
     Bed,
     download_data,
