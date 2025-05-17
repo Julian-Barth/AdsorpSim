@@ -1,4 +1,4 @@
-"""A package to model the adsorption of atmospheric CO2."""
+"""A package to model the adsorption of atmospheric CO₂."""
 
 from __future__ import annotations
 
@@ -9,7 +9,9 @@ from .core import (
     get_percentage_point,
     plot_the_graph,
     add_adsorbent_to_list,
-    get_adsorbed_quantity,
+    get_adsorbed_quantity_CO2,
+    get_adsorbed_quantity_H2O,
+    fit_adsorption_parameters_from_csv,
 )
 
 __all__ = [
@@ -19,8 +21,9 @@ __all__ = [
     "get_percentage_point",
     "plot_the_graph",
     "add_adsorbent_to_list",
-    "get_adsorbed_quantity",
-    "langmuir_adsorption_carbon",
+    "get_adsorbed_quantity_CO2",
+    "get_adsorbed_quantity_H2O",
+    "fit_adsorption_parameters_from_csv",
 ]
 
-__version__ = "0.0.1"
+__version__ = "0.1.1"
