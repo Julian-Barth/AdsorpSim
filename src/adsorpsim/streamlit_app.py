@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import pandas as pd
 import os
-from core import Bed, Adsorbent_Langmuir
-from core import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_csv
+from adsorpsim import Bed, Adsorbent_Langmuir
+from adsorpsim import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_csv
 
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))

@@ -61,7 +61,8 @@ testpaths = [
 
 [tool.coverage.run]
 omit = [
-    '__init__.py'
+    '__init__.py',
+    'streamlit_app.py'
 ]
 
 [tool.coverage.report]
