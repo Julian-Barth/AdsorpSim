@@ -12,14 +12,6 @@ adsorpsim.core module
    :undoc-members:
    :show-inheritance:
 
-adsorpsim.functions module
---------------------------
-
-.. automodule:: adsorpsim.functions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 adsorpsim.streamlit\_app module
 -------------------------------
 
