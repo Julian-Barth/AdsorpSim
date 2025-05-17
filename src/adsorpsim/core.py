@@ -23,7 +23,7 @@ class Adsorbent_Langmuir:
                 f"density={self.density}, q_max_H2O={self.q_max_H2O}, K_H2O={self.K_H2O}, k_ads_H2O={self.k_ads_H2O})")
 
 class Bed:
-    def __init__(self, length, diameter, flow_rate, num_segments, total_time, adsorbent, humidity_percentage=0):
+    def __init__(self, length, diameter, flow_rate, num_segments, total_time, adsorbent : Adsorbent_Langmuir, humidity_percentage=0):
         self.length = length
         self.diameter = diameter
         self.flow_rate = flow_rate
@@ -340,8 +340,8 @@ def main_2():
         adsorbent=carbon,
         humidity_percentage=0 # Change this to >0 to include humidity
     )
-    t, outlet_CO2, outlet_H2O = bed.simulate(
-    )
+    t, outlet_CO2, outlet_H2O = bed.simulate()
+    
     
 if __name__ == "__main__":
     #main_1()
