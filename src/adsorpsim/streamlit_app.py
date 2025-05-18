@@ -15,7 +15,7 @@ from adsorpsim.core import download_data,get_percentage_point,add_adsorbent_to_l
 
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))
-csv_file = current_file.parents[2] /"Documents"/ "AdsorpSim" / "data" / "Adsorbent_data.csv"
+csv_file = current_file.parents[2] / "AdsorpSim" / "data" / "Adsorbent_data.csv"
 
 #the data are downloaded
 df = download_data(csv_file)
@@ -146,18 +146,18 @@ st.sidebar.header("Add an adsorbent to the list")
 #the constants of the adsorbent has to be listed
 with st.sidebar.form("Ajout adsorbent"):
     add_ads_name = st.text_input("name")
-    add_ads_q_max_CO2 = st.number_input("Q(max, CO₂) [mol/kg]")
-    add_ads_K_CO2 = st.number_input("K(CO₂) [m³/mol]")
-    add_ads_k_ads_CO2 = st.number_input("k(ads, CO₂) [1/s]")
-    add_ads_density = st.number_input("Density [kg/m³]")
-    add_ads_q_max_H2O = st.number_input("Q(max, H₂O) [mol/kg]")
-    add_ads_K_H2O = st.number_input("K(H₂O) [m³/mol]")
-    add_ads_k_ads_H2O = st.number_input("k(ads, H₂O) [1/s]")
+    add_ads_q_max_CO2 = st.number_input("Q(max, CO₂) [mol/kg]",step=1.0)
+    add_ads_K_CO2 = st.number_input("K(CO₂) [m³/mol]",step=0.01,format="%.4f")
+    add_ads_k_ads_CO2 = st.number_input("k(ads, CO₂) [1/s]",step=0.1,format="%.4f")
+    add_ads_density = st.number_input("Density [kg/m³]",step=100.0)
+    add_ads_q_max_H2O = st.number_input("Q(max, H₂O) [mol/kg]",step=1.0)
+    add_ads_K_H2O = st.number_input("K(H₂O) [m³/mol]",step=0.01,format="%.4f")
+    add_ads_k_ads_H2O = st.number_input("k(ads, H₂O) [1/s]",step=0.1,format="%.4f")
     #the use of a form ensures the app will not rerun after each input but only after the button is pressed
     submitted = st.form_submit_button("Add the adsorbent to the list")
 #when the button is pressed, the programm will either notify a missing information or add the adsorbent in the dataset
 if submitted:
-    if add_ads_name=="" or add_ads_q_max_CO2==0 or add_ads_K_CO2==0 or add_ads_k_ads_CO2==0 or add_ads_k_ads_H2O==0 or add_ads_density==0 or add_ads_q_max_H2O==0 or add_ads_K_H2O==0:
+    if add_ads_name=="" or add_ads_q_max_CO2==0 or add_ads_K_CO2==0 or add_ads_k_ads_CO2==0 or add_ads_density==0:
         st.sidebar.error("there is missing parameter(s)")
     elif add_ads_name in list_adsorbents:
         st.sidebar.error("The adsorbent is already in the list")
@@ -203,7 +203,7 @@ with col22:
 
 ### adsorbent parameters from csv file:
 
-st.title("Upload de fichier CSV")
+st.title("Upload your csv file to deduct the adsorbent's parameters")
 
 st.write("The csv file should respect the following format:")
 # Créer un tableau
