@@ -143,14 +143,15 @@ def get_percentage_point(percentage:int, t, outlet_conc):
     pc_point_x = t[index]
     return pc_point_x, pc_point_y
 
-def plot_the_graph(t,outlet_CO2,outlet_H2O,pc_point_x=0,pc_point_y=0):
+def plot_the_graph(t,outlet_CO2,outlet_H2O,pc_point_x=None,pc_point_y=None):
     """
     This function plots the breakthrough graph
     """
     #the plot is created
     fig, ax = plt.subplots(figsize=(8, 5))
-    #the point at wich the desired percentage of adsorbent is saturated in CO2 is plotted
-    ax.plot(pc_point_x, pc_point_y, "rx", markersize=10, label="Percentage point",zorder=3)
+    if pc_point_x is not None and pc_point_y is not None:
+        #the point at wich the desired percentage of adsorbent is saturated in CO2 is plotted
+        ax.plot(pc_point_x, pc_point_y, "rx", markersize=10, label="Percentage point",zorder=3)
     #the breakthrough curve is plotted
     ax.plot(t, outlet_CO2, label="Outlet CO₂ Concentration",zorder=1)
     #if the humidity is not null, the outlet concentration of H2O is plotted
