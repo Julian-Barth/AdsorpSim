@@ -4,14 +4,9 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import pandas as pd
 import os
-import sys
-# Ajoute le dossier "src" au path
-current_dir = os.path.dirname(os.path.abspath(__file__))  # .../src/adsorpsim
-src_path = os.path.abspath(os.path.join(current_dir, '..'))  # .../src
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
-from adsorpsim.core import Bed, Adsorbent_Langmuir
-from adsorpsim.core import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_df
+
+from adsorpsim import Bed, Adsorbent_Langmuir
+from adsorpsim import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_df
 
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))
