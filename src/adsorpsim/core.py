@@ -320,7 +320,7 @@ def fit_adsorption_parameters_from_df(df, bed_template,  assumed_density = None,
     t_sim, outlet_sim, _ = bed_template.simulate()
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(t_sim, outlet_sim, label="Fitted model",zorder=1)
-    ax.plot(t_exp, outlet_CO2_exp, label="Experimental points",zorder=2)
+    ax.scatter(t_exp, outlet_CO2_exp, label="Experimental points",color="red", marker="o",zorder=2)
     ax.set_xlabel('Time (s)')
     ax.set_ylabel('Outlet CO₂ Concentration (mol/m³)')
     ax.set_title('Breakthrough Curve')
