@@ -1,14 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+from scipy.optimize import minimize
 from pathlib import Path
 import pandas as pd
 import os
-from scipy.optimize import minimize
 import warnings
 
 class Adsorbent_Langmuir:
-    def __init__(self, name, q_max_CO2, K_CO2, k_ads_CO2, density, q_max_H2O=0, K_H2O=0, k_ads_H2O=0):
+    """
+    Represents an adsorbent following Langmuir kinetics.
+    """
+    def __init__(self, name: str , q_max_CO2 : float, K_CO2: float, k_ads_CO2: float, density: float, q_max_H2O: float=0, K_H2O: float =0, k_ads_H2O: float =0):
         self.name = name
         self.q_max_CO2 = q_max_CO2
         self.K_CO2 = K_CO2
@@ -23,7 +26,10 @@ class Adsorbent_Langmuir:
                 f"density={self.density}, q_max_H2O={self.q_max_H2O}, K_H2O={self.K_H2O}, k_ads_H2O={self.k_ads_H2O})")
 
 class Bed:
-    def __init__(self, length, diameter, flow_rate, num_segments, total_time, adsorbent : Adsorbent_Langmuir, humidity_percentage=0):
+    """
+    Represents a packed bed reactor with discretized segments.
+    """
+    def __init__(self, length: float, diameter: float, flow_rate: float, num_segments: int, total_time: int, adsorbent : Adsorbent_Langmuir, humidity_percentage: float =0):
         self.length = length
         self.diameter = diameter
         self.flow_rate = flow_rate
@@ -144,7 +150,7 @@ def load_adsorbent_from_csv(csv_path, adsorbent_name):
     return adsorbent
 
 
-def get_percentage_point(percentage:int, t, outlet_conc):
+def get_percentage_point(percentage:float, t, outlet_conc):
     """
     This function first identifies the outlet CO2 concentration at the desired percentage
 
