@@ -122,6 +122,28 @@ def download_data(csv_file):
     df = pd.read_csv(csv_file, sep= ";")
     return df
 
+def load_adsorbent_from_csv(csv_path, adsorbent_name):
+    df = pd.read_csv(csv_path, sep=';')
+    row = df[df['name'] == adsorbent_name]
+
+    if row.empty:
+        raise ValueError(f"Adsorbent '{adsorbent_name}' not found in {csv_path}.")
+
+    row = row.iloc[0]  # Get the first matching row as Series
+
+    adsorbent = Adsorbent_Langmuir(
+        name=row['name'],
+        q_max_CO2=row['q_max_CO2'],
+        K_CO2=row['K_CO2'],
+        k_ads_CO2=row['k_ads_CO2'],
+        density=row['density'],
+        q_max_H2O=row.get('q_max_H2O', 0),  # default to 0 if not present
+        K_H2O=row.get('K_H2O', 0),
+        k_ads_H2O=row.get('k_ads_H2O', 0)
+    )
+    return adsorbent
+
+
 def get_percentage_point(percentage:int, t, outlet_conc):
     """
     This function first identifies the outlet CO2 concentration at the desired percentage

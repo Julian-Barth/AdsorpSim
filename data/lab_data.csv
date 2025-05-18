@@ -1,4 +1,4 @@
-﻿time,outlet_CO2
+﻿time;outlet_CO2
 0,0.0001
 100,0.0003
 200,0.0012

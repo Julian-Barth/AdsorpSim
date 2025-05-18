@@ -9,7 +9,7 @@ from adsorpsim import download_data,get_percentage_point,add_adsorbent_to_list,p
 
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))
-csv_file = current_file.parents[2] / "AdsorpSim" / "data" / "Dataset PPC.csv"
+csv_file = current_file.parents[2] / "AdsorpSim" / "data" / "Adsorbent_data.csv"
 
 #the data are downloaded
 df = download_data(csv_file)
