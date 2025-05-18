@@ -12,7 +12,7 @@ from adsorpsim import (
     add_adsorbent_to_list,
     get_adsorbed_quantity_CO2,
     get_adsorbed_quantity_H2O,
-    fit_adsorption_parameters_from_csv,
+    fit_adsorption_parameters_from_df,
 )
 # Create a reusable adsorbent instance for tests
 @pytest.fixture
@@ -99,10 +99,10 @@ def test_get_adsorbed_quantity_H2O(sample_adsorbent):
     assert adsorbed >= 0
 
 # Simulate data and fit parameters to test the fitting function
-def test_fit_adsorption_parameters_from_csv(sample_adsorbent):
+def test_fit_adsorption_parameters_from_df(sample_adsorbent):
     bed_template = Bed(1.0, 0.1, 1e-5, 5, 20, sample_adsorbent)
     t_sim, outlet_sim, _ = bed_template.simulate()
     df = pd.DataFrame({'time': t_sim, 'outlet_CO2': outlet_sim})
-    fitted_ads, fig = fit_adsorption_parameters_from_csv(df, bed_template)
+    fitted_ads, fig = fit_adsorption_parameters_from_df(df, bed_template)
     assert isinstance(fitted_ads, Adsorbent_Langmuir)  # Should return a fitted model
     assert fig is not None  # Should return a visualization
