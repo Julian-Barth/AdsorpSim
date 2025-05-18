@@ -11,7 +11,7 @@ from adsorpsim.core import (
     add_adsorbent_to_list,
     get_adsorbed_quantity_CO2,
     get_adsorbed_quantity_H2O,
-    fit_adsorption_parameters_from_csv,
+    fit_adsorption_parameters_from_df,
     load_adsorbent_from_csv
 )
 
@@ -24,7 +24,7 @@ __all__ = [
     "add_adsorbent_to_list",
     "get_adsorbed_quantity_CO2",
     "get_adsorbed_quantity_H2O",
-    "fit_adsorption_parameters_from_csv",
+    "fit_adsorption_parameters_from_df",
     "load_adsorbent_from_csv"
 ]
 

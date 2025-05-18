@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import os
 from adsorpsim import Bed, Adsorbent_Langmuir
-from adsorpsim import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_csv
+from adsorpsim import download_data,get_percentage_point,add_adsorbent_to_list,plot_the_graph,get_adsorbed_quantity_CO2,get_adsorbed_quantity_H2O,fit_adsorption_parameters_from_df
 
 #the data are loaded: are the data consist of different adsorbents with their physical properties
 current_file = Path(os.path.abspath(''))
@@ -218,7 +218,7 @@ if uploaded_file is not None:
             humidity_percentage=humidity_percentage
         )
 
-        fitted_adsorbent,fig= fit_adsorption_parameters_from_csv(df2,bed2)
+        fitted_adsorbent,fig= fit_adsorption_parameters_from_df(df2,bed2)
         st.write("The deducted parameters of the adsorbent are shown below:")
         col1,col2,col3 = st.columns([1, 1, 1])
         with col1:

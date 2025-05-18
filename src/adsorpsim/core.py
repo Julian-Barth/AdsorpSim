@@ -247,7 +247,7 @@ def get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O, humidity_precentage, pc_poi
     else:
         return 0
 
-def fit_adsorption_parameters_from_csv(df, bed_template,  assumed_density = None, initial_guess=[4.0, 0.2, 1]):
+def fit_adsorption_parameters_from_df(df, bed_template,  assumed_density = None, initial_guess=[4.0, 0.2, 1]):
     """
     Fit the Langmuir adsorption parameters to experimental CO2 breakthrough data.
 
