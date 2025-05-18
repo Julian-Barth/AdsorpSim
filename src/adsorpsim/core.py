@@ -247,7 +247,7 @@ def get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O, humidity_precentage, pc_poi
     else:
         return 0
 
-def fit_adsorption_parameters_from_csv(df, bed_template, initial_guess=[4.0, 0.2, 1]):
+def fit_adsorption_parameters_from_csv(df, bed_template,  assumed_density = None, initial_guess=[4.0, 0.2, 1]):
     """
     Fit the Langmuir adsorption parameters to experimental CO2 breakthrough data.
 
@@ -260,6 +260,16 @@ def fit_adsorption_parameters_from_csv(df, bed_template, initial_guess=[4.0, 0.2
         fitted_adsorbent (Adsorbent_Langmuir): Fitted adsorbent object.
         fig (matplotlib figure): Figure of the fitted breakthrough curve.
     """
+    
+    if bed_template.adsorbent == None:
+
+        bed_template.adsorbent = Adsorbent_Langmuir(
+        name="Dummy Adsorbant",
+        q_max_CO2=5.0,
+        K_CO2=0.2,
+        k_ads_CO2=0.02,
+        density=assumed_density
+)
     # Load experimental data
     t_exp = df['time'].values
     outlet_CO2_exp = df['outlet_CO2'].values
