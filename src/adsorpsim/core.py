@@ -200,6 +200,11 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, 
     The physical properties and the name has to be given to the function
     The .csv file is then saved
     """
+    #the file is read 
+    df = pd.read_csv(CSV_PATH, sep=";")
+     # Check if the adsorbent already exists
+    if name in df['name'].values:
+        raise ValueError(f"The adsorbent '{name}' is already in the database.")
     #creation of a dataframe with the new line (new adsorbent)
     new_row = {
     "name": name,
@@ -211,8 +216,7 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, 
     "K_H2O": K_H2O,
     "k_ads_H2O": k_ads_H2O
     }
-    #the file is read and the new adsorbent is added
-    df = pd.read_csv(CSV_PATH, sep=";")
+    # the new adsorbent is added
     df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
     #the file is saved 
     df.to_csv(CSV_PATH, sep=";", index=False)
