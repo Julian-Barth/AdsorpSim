@@ -120,7 +120,7 @@ To install the package, run
 
 You can now execute the following commands to run the app and enjoy the different usefull tools👍🏼
 
-'''
+```
 (adsorpsim) cd path/to/your/Adsorpsim/src/adsorpsim
 (adsorpsim) streamlit run streamlit_app.py
-'''
+```
