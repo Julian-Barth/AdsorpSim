@@ -142,20 +142,25 @@ st.sidebar.header("Add an adsorbent to the list")
 with st.sidebar.form("Ajout adsorbent"):
     add_ads_name = st.text_input("name")
     add_ads_q_max_CO2 = st.number_input("Q(max, CO₂) [mol/kg]",step=1.0)
-    add_ads_K_CO2 = st.number_input("K(CO₂) [m³/mol]",step=0.01,format="%.4f")
-    add_ads_k_ads_CO2 = st.number_input("k(ads, CO₂) [1/s]",step=0.1,format="%.4f")
+    add_ads_K_CO2 = st.number_input("K(CO₂) [m³/mol]",step=0.1,format="%.4f")
+    add_ads_k_ads_CO2 = st.number_input("k(ads, CO₂) [1/s]",step=0.01,format="%.4f")
     add_ads_density = st.number_input("Density [kg/m³]",step=100.0)
-    add_ads_q_max_H2O = st.number_input("Q(max, H₂O) [mol/kg]",step=1.0)
-    add_ads_K_H2O = st.number_input("K(H₂O) [m³/mol]",step=0.01,format="%.4f")
-    add_ads_k_ads_H2O = st.number_input("k(ads, H₂O) [1/s]",step=0.1,format="%.4f")
+    add_ads_q_max_H2O = st.number_input("Q(max, H₂O) [mol/kg] (optional)",step=1.0)
+    add_ads_K_H2O = st.number_input("K(H₂O) [m³/mol] (optional)",step=0.1,format="%.4f")
+    add_ads_k_ads_H2O = st.number_input("k(ads, H₂O) [1/s] (optional)",step=0.01,format="%.4f")
     #the use of a form ensures the app will not rerun after each input but only after the button is pressed
     submitted = st.form_submit_button("Add the adsorbent to the list")
 #when the button is pressed, the programm will either notify a missing information or add the adsorbent in the dataset
 if submitted:
     if add_ads_name=="" or add_ads_q_max_CO2==0 or add_ads_K_CO2==0 or add_ads_k_ads_CO2==0 or add_ads_density==0:
-        st.sidebar.error("there is missing parameter(s)")
-    elif add_ads_name in list_adsorbents:
+        st.sidebar.error("there is missing mandatory parameter(s)")
+    elif add_ads_name=="" or add_ads_q_max_CO2<0 or add_ads_K_CO2<0 or add_ads_k_ads_CO2<0 or add_ads_density<0 or add_ads_q_max_H2O<0 or add_ads_K_H2O<0 or add_ads_k_ads_H2O<0:
+        st.sidebar.error("the parameters have to be positive")
+    elif add_ads_name in list_adsorbents or add_ads_name+" (without H₂O properties)" in list_adsorbents:
         st.sidebar.error("The adsorbent is already in the list")
+    elif add_ads_q_max_H2O==0 or add_ads_K_H2O==0 or add_ads_k_ads_H2O==0:
+        add_adsorbent_to_list(csv_file,add_ads_name+" (without H₂O properties)",add_ads_q_max_CO2,add_ads_K_CO2,add_ads_k_ads_CO2,add_ads_density)
+        st.sidebar.success("The adsorbent was added to the list without specifying its property to adsorb water, please refresh the page (Ctrl+R)")
     else:
     #add the adsorbent to the .csv file
         add_adsorbent_to_list(csv_file,add_ads_name,add_ads_q_max_CO2,add_ads_K_CO2,k_ads_CO2,add_ads_density,add_ads_q_max_H2O,add_ads_K_H2O,k_ads_H2O)
@@ -201,7 +206,6 @@ with col22:
 st.title("Upload your csv file to deduct the adsorbent's parameters")
 
 st.write("The csv file should respect the following format:")
-# Créer un tableau
 data = pd.DataFrame(
     [[0, 0.0001],
      [100,0.0003],
@@ -242,6 +246,19 @@ if uploaded_file is not None:
         with col3:
             tile1=st.container(height = 120)
             tile1.metric("k(ads, CO₂) [1/s]", round(fitted_adsorbent.k_ads_CO2, 4))
+        col1,col2 = st.columns([1, 1])
+        with col1:
+            add_deducted_ads_name = st.text_input("Please name the adsorbent to add it to the list")
+        with col2:
+            st.write("")
+            st.write("")
+            if st.button("Add the adsorbent to the list"):
+                if add_deducted_ads_name=="":
+                    st.sidebar.error("the adsorbent must be named") 
+                else:
+                    add_adsorbent_to_list(csv_file,add_deducted_ads_name+" (without H₂O properties)",round(fitted_adsorbent.q_max_CO2, 2),round(fitted_adsorbent.K_CO2, 4),round(fitted_adsorbent.k_ads_CO2, 4),presumed_density)
+                    st.success("The adsorbent was added to the list without specifying its property to adsorb water, please refresh the page (Ctrl+R)")        
         st.pyplot(fig)
         st.write("Aperçu du fichier :")
         st.dataframe(df2)
+

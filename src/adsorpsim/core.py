@@ -113,7 +113,6 @@ class Bed:
         C_CO2_sol = sol.y[0:self.num_segments, :]
         outlet_CO2 = C_CO2_sol[-1, :]
 
-        #outlet_H2O = None
         if self.initial_conc_H2O != 0:
             C_H2O_sol = sol.y[self.num_segments:2*self.num_segments, :]
             outlet_H2O = C_H2O_sol[-1, :]
@@ -193,7 +192,7 @@ def plot_the_graph(t,outlet_CO2,outlet_H2O,pc_point_x=None,pc_point_y=None):
     ax.grid(True)
     return fig
 
-def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, q_max_H2O, K_H2O, k_ads_H2O):
+def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, q_max_H2O=0, K_H2O=0, k_ads_H2O=0):
     """
     This function reads a given .csv file 
     and adds a row containing the different needed physical property of an adsorbent
