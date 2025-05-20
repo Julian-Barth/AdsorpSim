@@ -199,9 +199,31 @@ def add_adsorbent_to_list(CSV_PATH, name, q_max_CO2, K_CO2, k_ads_CO2, density, 
     The physical properties and the name has to be given to the function
     The .csv file is then saved
     """
+    #Verifications for the name
+    if name=="":
+        raise ValueError("The variable 'name' cannot be empty.")
+    if not isinstance(name, str):
+        raise TypeError("The variable 'name' must be a string.")
+    # Verification for the numeric variables
+    numeric_vars = {
+        "q_max_CO2": q_max_CO2,
+        "K_CO2": K_CO2,
+        "k_ads_CO2": k_ads_CO2,
+        "density": density,
+        "q_max_H2O": q_max_H2O,
+        "K_H2O": K_H2O,
+        "k_ads_H2O": k_ads_H2O
+    }
+    for var_name, var_value in numeric_vars.items():
+        if not isinstance(var_value, (float, int)):
+            raise TypeError(f"The variable '{var_name}' must be a float or an int..")
+        if var_value < 0:
+            raise ValueError(f"The variable '{var_name}' cannot be negative..")
+        if var_name in ["q_max_CO2", "K_CO2", "k_ads_CO2", "density"] and var_value == 0:
+            raise ValueError(f"The variable '{var_name}' cannot be zero.")
     #the file is read 
     df = pd.read_csv(CSV_PATH, sep=";")
-     # Check if the adsorbent already exists
+    # Check if the adsorbent already exists
     if name in df['name'].values:
         raise ValueError(f"The adsorbent '{name}' is already in the database.")
     #creation of a dataframe with the new line (new adsorbent)
