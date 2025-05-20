@@ -156,10 +156,10 @@ if submitted:
         st.sidebar.error("there is missing mandatory parameter(s)")
     elif add_ads_name=="" or add_ads_q_max_CO2<0 or add_ads_K_CO2<0 or add_ads_k_ads_CO2<0 or add_ads_density<0 or add_ads_q_max_H2O<0 or add_ads_K_H2O<0 or add_ads_k_ads_H2O<0:
         st.sidebar.error("the parameters have to be positive")
-    elif add_ads_name in list_adsorbents or add_ads_name+" (without H₂O properties)" in list_adsorbents:
+    elif add_ads_name in list_adsorbents or add_ads_name+" "+"(without H₂O properties)" in list_adsorbents:
         st.sidebar.error("The adsorbent is already in the list")
     elif add_ads_q_max_H2O==0 or add_ads_K_H2O==0 or add_ads_k_ads_H2O==0:
-        add_adsorbent_to_list(csv_file,add_ads_name+" (without H₂O properties)",add_ads_q_max_CO2,add_ads_K_CO2,add_ads_k_ads_CO2,add_ads_density)
+        add_adsorbent_to_list(csv_file,add_ads_name+" "+"(without H₂O properties)",add_ads_q_max_CO2,add_ads_K_CO2,add_ads_k_ads_CO2,add_ads_density)
         st.sidebar.success("The adsorbent was added to the list without specifying its property to adsorb water, please refresh the page (Ctrl+R)")
     else:
     #add the adsorbent to the .csv file
@@ -201,10 +201,11 @@ with col22:
     tile3.metric("Mass of adsorbed H₂O in one cycle", f"{round(get_adsorbed_quantity_H2O(outlet_CO2,outlet_H2O,humidity_percentage,pc_point_x,pc_point_y,flow_rate)*0.018015, 4)} [kg]")
 
 
+
 ### adsorbent parameters from csv file:
 
 st.title("Upload your csv file to deduct the adsorbent's parameters")
-
+#show the needed format of the csv file
 st.write("The csv file should respect the following format:")
 data = pd.DataFrame(
     [[0, 0.0001],
@@ -213,16 +214,17 @@ data = pd.DataFrame(
      ["...","..."]],
     columns=["time", "outlet CO₂ concentration"]
 )
-# Affichage
+# Load the csv file
 st.dataframe(data, use_container_width=True)
 st.markdown("Drag and drop your csv file here, the fitted curve will respect the previously given bed parameters")
 st.markdown(" ⚠ Adding a file may significantly increase the running time of the app ⚠")
 uploaded_file = st.file_uploader("", type="csv")
-
+#asks the density of the adsorbent to be able to calculate the parameters
 if uploaded_file is not None:
     st.write("Please enter the assumed density of the adsorbent.")
     presumed_density=st.number_input("Density [kg/m³]", value=0.0 ,step=100.0, key="presumed density")
     if presumed_density!=0:
+        # Calculate the parameters of the adsorbent from the csv file
         df2 = pd.read_csv(uploaded_file)
         bed2 = Bed(
             length=length,
@@ -233,8 +235,8 @@ if uploaded_file is not None:
             adsorbent=None,
             humidity_percentage=humidity_percentage
         )
-
         fitted_adsorbent,fig= fit_adsorption_parameters_from_df(df2,bed2,presumed_density)
+        #show the results of the fitted parameters
         st.write("The deducted parameters of the adsorbent are shown below:")
         col1,col2,col3 = st.columns([1, 1, 1])
         with col1:
@@ -246,6 +248,7 @@ if uploaded_file is not None:
         with col3:
             tile1=st.container(height = 120)
             tile1.metric("k(ads, CO₂) [1/s]", round(fitted_adsorbent.k_ads_CO2, 4))
+        #Add the opportunity to directly add the adsorbent to the dataset
         col1,col2 = st.columns([1, 1])
         with col1:
             add_deducted_ads_name = st.text_input("Please name the adsorbent to add it to the list")
@@ -256,9 +259,11 @@ if uploaded_file is not None:
                 if add_deducted_ads_name=="":
                     st.sidebar.error("the adsorbent must be named") 
                 else:
-                    add_adsorbent_to_list(csv_file,add_deducted_ads_name+" (without H₂O properties)",round(fitted_adsorbent.q_max_CO2, 2),round(fitted_adsorbent.K_CO2, 4),round(fitted_adsorbent.k_ads_CO2, 4),presumed_density)
-                    st.success("The adsorbent was added to the list without specifying its property to adsorb water, please refresh the page (Ctrl+R)")        
+                    add_adsorbent_to_list(csv_file,add_deducted_ads_name+" "+"(without H₂O properties)",round(fitted_adsorbent.q_max_CO2, 2),round(fitted_adsorbent.K_CO2, 4),round(fitted_adsorbent.k_ads_CO2, 4),presumed_density)
+                    st.success("The adsorbent was added to the list without specifying its property to adsorb water, please refresh the page (Ctrl+R)")  
+        #show the fitted graph      
         st.pyplot(fig)
+        #show the uploaded csv file
         st.write("Aperçu du fichier :")
         st.dataframe(df2)
 
