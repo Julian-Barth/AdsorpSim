@@ -1,6 +1,0 @@
-name;q_max_CO2;K_CO2;k_ads_CO2;density;q_max_H2O;K_H2O;k_ads_H2O
-Activated Carbon;5.0;0.2;0.02;800.0;3.0;0.001;0.1
-Zeolite 13X;5.5;0.6;0.05;750.0;1.5;0.001;0.15
-Zeolite 15X (without H₂O properties);4.0;0.3;0.01;700.0;0.0;0.0;0.1
-Zeolite 16X (without H₂O properties);5.0;0.3;0.02;700.0;0.0;0.0;0.0
-Zeolite 17X (without H₂O properties);2.08;0.3293;0.033;800.0;0.0;0.0;0.0
