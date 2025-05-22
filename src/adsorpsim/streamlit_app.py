@@ -206,7 +206,7 @@ with col22:
 
 st.title("Upload your csv file to deduct the adsorbent's parameters")
 #show the needed format of the csv file
-st.write("The csv file should respect the following format:")
+st.write("The csv file should respect the following format AND use ; as separator")
 data = pd.DataFrame(
     [[0, 0.0001],
      [100,0.0003],
@@ -225,13 +225,13 @@ if uploaded_file is not None:
     presumed_density=st.number_input("Density [kg/m³]", value=0.0 ,step=100.0, key="presumed density")
     if presumed_density!=0:
         # Calculate the parameters of the adsorbent from the csv file
-        df2 = pd.read_csv(uploaded_file)
+        df2 = pd.read_csv(uploaded_file,sep=";")
         bed2 = Bed(
             length=length,
             diameter=diameter,
             flow_rate=flow_rate,
             num_segments=num_segments,
-            total_time = df2['time'].iloc[-1],
+            total_time = df2["time"].iloc[-1],
             adsorbent=None,
             humidity_percentage=humidity_percentage
         )
