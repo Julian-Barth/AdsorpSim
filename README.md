@@ -68,7 +68,7 @@ conda create -n adsorpsim python=3.10
 
 ```
 conda activate adsorpsim
-(conda_env) $ pip install .
+(adsorpsim) $ pip install .
 ```
 
 If you need jupyter lab, install it 
@@ -112,8 +112,8 @@ To install the package, run
 ### ✅ Run tests and coverage
 
 ```
-(conda_env) $ pip install tox
-(conda_env) $ tox
+(adsorpsim) $ pip install tox
+(adsorpsim) $ tox
 ```
 
 ### 💻 Run the app !!
