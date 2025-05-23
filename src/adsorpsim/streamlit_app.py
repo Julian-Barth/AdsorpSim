@@ -76,10 +76,10 @@ if choix=="Manual Modifications":
     #the adsorbent parameters are chosen from the user's interface with defaults settings
     q_max_CO2 = st.sidebar.number_input('Q(max, CO₂) [mol/kg]', value=5.0, step=1.0, key="q_max_CO2")
     K_CO2 = st.sidebar.number_input('K(CO₂) [m³/mol]', value=0.3,format="%.4f", step=0.1, key="K_CO2")
-    k_ads_CO2= st.sidebar.number_input('k(ads, H₂O) [1/s]', value=0.01,format="%.4f", step=0.01, key="k_ads_CO2")
+    k_ads_CO2= st.sidebar.number_input('k(ads, H₂O) [1/s]', value=0.01,format="%.4f", step=0.1, key="k_ads_CO2")
     density = st.sidebar.number_input('Density [kg/m³]', value=800.0 ,step=100.0, key="density")
     q_max_H2O = st.sidebar.number_input('Q(max, H₂O) [mol/kg]', value=5.0 , step=1.0, key="q_max_H2O")
-    K_H2O= st.sidebar.number_input('K(H₂O) [m³/mol]', value=0.01,format="%.4f", step=0.01, key="K_H2O")
+    K_H2O= st.sidebar.number_input('K(H₂O) [m³/mol]', value=0.01,format="%.4f", step=0.1, key="K_H2O")
     k_ads_H2O = st.sidebar.number_input('k(ads, H₂O) [1/s]', value=0.1,format="%.4f", step=0.1, key="k_ads_H2O")
 
     # Create adsorbent
@@ -108,11 +108,11 @@ if choix=="Manual Modifications":
 else:
     #adsorbent parameters
     q_max_CO2_ad = st.sidebar.number_input('Q(max, CO₂) [mol/kg]', value=adsorbants[choix].q_max_CO2, step=1.0)
-    K_CO2_ad = st.sidebar.number_input('K(CO₂) [m³/mol]', value=adsorbants[choix].K_CO2 , step=0.01,format="%.4f")
+    K_CO2_ad = st.sidebar.number_input('K(CO₂) [m³/mol]', value=adsorbants[choix].K_CO2 , step=0.1,format="%.4f")
     k_ads_CO2_ad = st.sidebar.number_input('k(ads, CO₂) [1/s]', value=adsorbants[choix].k_ads_CO2 ,format="%.4f",step=0.1)
     density_ad = st.sidebar.number_input('Density[kg/m³]', value=adsorbants[choix].density ,step=100.0)
     q_max_H2O_ad = st.sidebar.number_input('Q(max, H₂O) [mol/kg]', value=adsorbants[choix].q_max_H2O , step=1.0)
-    K_H2O_ad = st.sidebar.number_input('K (H₂O)[m³/mol]', value=adsorbants[choix].K_H2O, step=0.01,format="%.4f")
+    K_H2O_ad = st.sidebar.number_input('K (H₂O)[m³/mol]', value=adsorbants[choix].K_H2O, step=0.1,format="%.4f")
     k_ads_H2O_ad = st.sidebar.number_input('k(ads, H₂O) [1/s]', value=adsorbants[choix].k_ads_H2O ,format="%.4f",step=0.1)
     #create modulable adsorbent with the reported parameters
     adsorbent = Adsorbent_Langmuir(
@@ -143,11 +143,11 @@ with st.sidebar.form("Ajout adsorbent"):
     add_ads_name = st.text_input("name")
     add_ads_q_max_CO2 = st.number_input("Q(max, CO₂) [mol/kg]",step=1.0)
     add_ads_K_CO2 = st.number_input("K(CO₂) [m³/mol]",step=0.1,format="%.4f")
-    add_ads_k_ads_CO2 = st.number_input("k(ads, CO₂) [1/s]",step=0.01,format="%.4f")
+    add_ads_k_ads_CO2 = st.number_input("k(ads, CO₂) [1/s]",step=0.1,format="%.4f")
     add_ads_density = st.number_input("Density [kg/m³]",step=100.0)
     add_ads_q_max_H2O = st.number_input("Q(max, H₂O) [mol/kg] (optional)",step=1.0)
     add_ads_K_H2O = st.number_input("K(H₂O) [m³/mol] (optional)",step=0.1,format="%.4f")
-    add_ads_k_ads_H2O = st.number_input("k(ads, H₂O) [1/s] (optional)",step=0.01,format="%.4f")
+    add_ads_k_ads_H2O = st.number_input("k(ads, H₂O) [1/s] (optional)",step=0.1,format="%.4f")
     #the use of a form ensures the app will not rerun after each input but only after the button is pressed
     submitted = st.form_submit_button("Add the adsorbent to the list")
 #when the button is pressed, the programm will either notify a missing information or add the adsorbent in the dataset
@@ -163,7 +163,7 @@ if submitted:
         st.sidebar.success("The adsorbent was added to the list without specifying its property to adsorb water, please refresh the page (Ctrl+R)")
     else:
     #add the adsorbent to the .csv file
-        add_adsorbent_to_list(csv_file,add_ads_name,add_ads_q_max_CO2,add_ads_K_CO2,k_ads_CO2,add_ads_density,add_ads_q_max_H2O,add_ads_K_H2O,k_ads_H2O)
+        add_adsorbent_to_list(csv_file,add_ads_name,add_ads_q_max_CO2,add_ads_K_CO2,add_ads_k_ads_CO2,add_ads_density,add_ads_q_max_H2O,add_ads_K_H2O,add_ads_k_ads_H2O)
         st.sidebar.success("The adsorbent was added to the list, please refresh the page (Ctrl+R)")
 
 
